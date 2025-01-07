@@ -4,3 +4,4 @@ numpy
 matplotlib
 xlsxwriter
 zipfile36
+openpyxl

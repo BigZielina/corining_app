@@ -303,9 +303,9 @@ def generate_df(file_path):
     # print(wave_combinations_IL_97th[1550][:10])
 
 
-    mean_values = wave_combinations_IL_mean[1550][:10]
-    std_values = wave_combinations_IL_std[1550][:10]
-    percentile_97th_values = wave_combinations_IL_97th[1550][:10]
+    mean_values = wave_combinations_IL_mean[1550]
+    std_values = wave_combinations_IL_std[1550]
+    percentile_97th_values = wave_combinations_IL_97th[1550]
 
     data2 = {
         'Mean': mean_values,
@@ -367,9 +367,9 @@ def generate_df(file_path):
     # print(list(map(np.std,dut_connectors_IL))[:10])
     # print(list(map(lambda x : np.percentile(x,97),dut_connectors_IL))[:10])
 
-    mean_values_dut = list(map(np.mean, dut_connectors_IL))[:10]
-    std_values_dut = list(map(np.std, dut_connectors_IL))[:10]
-    percentile_97th_values_dut = list(map(lambda x: np.percentile(x, 97), dut_connectors_IL))[:10]
+    mean_values_dut = list(map(np.mean, dut_connectors_IL))
+    std_values_dut = list(map(np.std, dut_connectors_IL))
+    percentile_97th_values_dut = list(map(lambda x: np.percentile(x, 97), dut_connectors_IL))
 
 
     data5 = {

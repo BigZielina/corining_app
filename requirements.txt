@@ -5,3 +5,5 @@ matplotlib
 xlsxwriter
 zipfile36
 openpyxl
+reportlab
+svglib

@@ -6,6 +6,9 @@ from io import BytesIO
 import zipfile
 from data_loading import DataCore, generate_df  # Import DataCore from data_loading.py
 from plots import generate_plots
+from raport import create_pdf
+from reportlab.platypus import SimpleDocTemplate
+from reportlab.lib.pagesizes import letter
 import os
 
 @st.cache_data
@@ -42,6 +45,16 @@ def create_zip_file(tables, plots):
             zf.writestr(filename, data)
     output.seek(0)
     return output
+
+def save_pdf(story):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize = letter)
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+
 
 #--------------------------------------------------------------------------
 
@@ -134,3 +147,11 @@ if uploaded_file is not None:
                 file_name=f"table_{i+1}.csv",
                 mime="text/csv"
             )
+
+
+    st.download_button(
+        label="Generate and Download PDF Raport",
+        data=save_pdf(create_pdf(tab_titles, plots, dfs)),
+        file_name="RM_report.pdf",
+        mime="application/pdf",
+    )

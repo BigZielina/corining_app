@@ -325,8 +325,14 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     wavelength_to_sort = wavelengths[0]
     IL_data_to_sort = wavelength_IL_combinations[wavelength_to_sort]
     
+    # Sprawdzanie i usuwanie wartości NaN w danych
+    IL_data_to_sort_clean = [
+        np.array(jumper_data, dtype=float)[~np.isnan(np.array(jumper_data, dtype=float))]  # Rzutowanie na float i usuwanie NaN
+        for jumper_data in IL_data_to_sort
+    ]
+    
     # Obliczamy średnie wartości dla jumperów przy wybranej długości fali
-    mean_values_to_sort = np.array([np.mean(IL_data_to_sort[jumper - 1]) for jumper in jumper_numbers])
+    mean_values_to_sort = np.array([np.mean(data) if len(data) > 0 else np.nan for data in IL_data_to_sort_clean])
     
     # Sortowanie jumperów na podstawie średnich wartości dla wybranej długości fali
     sorted_indices = np.argsort(mean_values_to_sort)
@@ -341,10 +347,14 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
     for idx, (wavelength, IL_data) in enumerate(wavelength_IL_combinations.items()):
         # Obliczamy średnie wartości dla wszystkich jumperów
-        mean_values = np.array([np.mean(IL_data[jumper - 1]) for jumper in jumper_numbers])
+        mean_values = [
+            np.mean(np.array(jumper_data, dtype=float)[~np.isnan(np.array(jumper_data, dtype=float))]) 
+            if len(jumper_data) > 0 else np.nan 
+            for jumper_data in IL_data
+        ]
         
         # Sortowanie średnich wartości zgodnie z kolejnością jumperów
-        sorted_mean_values = mean_values[sorted_indices]
+        sorted_mean_values = np.array(mean_values)[sorted_indices]
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -369,8 +379,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     ax.legend(loc='best')
     
     plt.grid(True)
-    plt.show()
-    
+    plt.show()    
     return fig
 
 def jumper_std_plot_sorted(DC, n_choices=1):
@@ -395,8 +404,17 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     wavelength_to_sort = wavelengths[0]
     IL_data_to_sort = wavelength_IL_combinations[wavelength_to_sort]
     
+    # Sprawdzanie i usuwanie wartości NaN w danych
+    IL_data_to_sort_clean = [
+        np.array(jumper_data, dtype=float)[~np.isnan(np.array(jumper_data, dtype=float))]  # Rzutowanie na float i usuwanie NaN
+        for jumper_data in IL_data_to_sort
+    ]
+    
     # Obliczamy odchylenia standardowe dla jumperów przy wybranej długości fali
-    std_values_to_sort = np.array([np.std(IL_data_to_sort[jumper - 1]) for jumper in jumper_numbers])
+    std_values_to_sort = np.array([
+        np.std(data) if len(data) > 0 else np.nan 
+        for data in IL_data_to_sort_clean
+    ])
     
     # Sortowanie jumperów na podstawie odchyleń standardowych dla wybranej długości fali
     sorted_indices = np.argsort(std_values_to_sort)
@@ -410,11 +428,20 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
     for idx, (wavelength, IL_data) in enumerate(wavelength_IL_combinations.items()):
+        # Sprawdzanie i usuwanie wartości NaN w danych dla bieżącej długości fali
+        IL_data_clean = [
+            np.array(jumper_data, dtype=float)[~np.isnan(np.array(jumper_data, dtype=float))]
+            for jumper_data in IL_data
+        ]
+        
         # Obliczamy odchylenia standardowe dla wszystkich jumperów
-        std_values = np.array([np.std(IL_data[jumper - 1]) for jumper in jumper_numbers])
+        std_values = [
+            np.std(data) if len(data) > 0 else np.nan 
+            for data in IL_data_clean
+        ]
         
         # Sortowanie odchyleń standardowych zgodnie z kolejnością jumperów
-        sorted_std_values = std_values[sorted_indices]
+        sorted_std_values = np.array(std_values)[sorted_indices]
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(

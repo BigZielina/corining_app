@@ -13,10 +13,17 @@ import numpy as np
 def prepare_table(table : pd.DataFrame) -> Table:
     tablist = []
     cols = table.columns
-    print(cols)
+    #print(cols)
+    print(table)
     tableT = table.T.to_numpy()
-    tableT = tableT.round(7)
-    
+    print(tableT.shape)
+    print()
+    #
+    if tableT.shape == 1:
+        tableT[1::1] = map(lambda t: np.round(t,3), tableT[1::1])
+    else:
+        tableT = tableT.round(3)
+
     if tableT.shape[1] > 30:
         T = np.array_split(tableT, 5, axis=1)
     elif tableT.shape[1] > 5:
@@ -25,6 +32,7 @@ def prepare_table(table : pd.DataFrame) -> Table:
         T = [tableT]
     for t in T:
         t = list(map(list, t))
+        t = map(np.round, t)
         
         for i, row in enumerate(t):
             print(len(row))
@@ -65,6 +73,7 @@ def create_pdf(names, plots, tables):
 
     for name, plot, table in zip(names, plots, Ltables):
 
+        print(name)
         story.append(Paragraph(name,styleSheet["Heading3"]))
         story.append(prepare_plot(plot))
         for i in prepare_table(table):

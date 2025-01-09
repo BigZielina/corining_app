@@ -20,7 +20,9 @@ def generate_plots(uploaded_path):
     figs = []
     figs.extend(generate_weibull_distribution_for_wavelengths(DC))    # 3 wykresy
     plot_vs = plot1550vs1310(DC)    # 1 wykres
-    figs.append(plot_vs)
+    if plot_vs != None:
+        figs.append(plot_vs)
+
     figs.append(jumper_mean_plot_sorted(DC, n_choices=1))
     figs.append(jumper_std_plot_sorted(DC, n_choices=1))
     figs.extend(rm286_ilmean_plot(DC))
@@ -129,6 +131,7 @@ def plot1550vs1310(DC):
     wavelengths = DC.wavelengths()
 
     if 1310 not in wavelengths or 1550 not in wavelengths:
+        return
         raise ValueError("Długości fal 1310 nm lub 1550 nm nie znajdują się w dostępnych danych!")
 
     # Pobierz dane dla 1310 nm i 1550 nm

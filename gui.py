@@ -11,6 +11,9 @@ from reportlab.platypus import SimpleDocTemplate
 from reportlab.lib.pagesizes import letter
 import os
 
+
+st.set_page_config(layout="wide")
+
 @st.cache_data
 def convert_df_to_csv(df):
     return df.to_csv(index=False).encode('utf-8')
@@ -134,7 +137,7 @@ if uploaded_file is not None:
     for i, tab in enumerate(tabs):
         with tab:
             st.subheader(f"{tab_titles[i]}")
-        
+            
             st.pyplot(plots[i])
             
             buf = BytesIO()

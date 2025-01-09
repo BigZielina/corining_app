@@ -122,10 +122,10 @@ if uploaded_file is not None:
     )
 
     tab_titles = [
-        "First 10 combinations of connectors for all wavelengths",
+        "Combinations of connectors for all wavelengths",
         "All wavelengths",
-        "First 10 reference connectors",
-        "First 10 dut connectors",
+        "Reference connectors",
+        "dut connectors",
         "All fibers"
     ]
 

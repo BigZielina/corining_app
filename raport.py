@@ -14,16 +14,9 @@ def prepare_table(table : pd.DataFrame) -> Table:
     tablist = []
     cols = table.columns
     #print(cols)
-    print(table)
+    #print(table)
     tableT = table.T.to_numpy()
-    print(tableT.shape)
-    print()
-    #
-    if tableT.shape == 1:
-        tableT[1::1] = map(lambda t: np.round(t,3), tableT[1::1])
-    else:
-        tableT = tableT.round(3)
-
+    
     if tableT.shape[1] > 30:
         T = np.array_split(tableT, 5, axis=1)
     elif tableT.shape[1] > 5:
@@ -31,13 +24,21 @@ def prepare_table(table : pd.DataFrame) -> Table:
     else:
         T = [tableT]
     for t in T:
-        t = list(map(list, t))
-        t = map(np.round, t)
         
-        for i, row in enumerate(t):
-            print(len(row))
-            print(cols)
-            row.insert(0, cols[i])
+        if t.shape[1] == 1:
+            t = list(map(list, t))
+            t = map(np.round, t)
+            t = [cols, t] 
+        else:
+            t = list(map(list, t))
+            t = map(np.round, t)
+            print(type(t))
+            print(type(t[0]))
+            
+            for i, row in enumerate(t):
+                print(len(row))
+                print(cols)
+                row.insert(0, cols[i])
 
         t=Table(t,style=[
                     ('GRID',(0,0),(-1,-1),0.5,colors.black),

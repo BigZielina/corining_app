@@ -92,11 +92,21 @@ with st.expander("Generate Excel Template"):
 #     data=open(template_csv, 'rb').read(),
 #     file_name="template.xlsx"
 # )
-
+max_selected_connectors = 100
+with st.expander("Select Connector Number"):
+    st.write("Provide the desired connector number below.")
+    selected_connector_number = st.number_input(
+        "Connector Number",
+        min_value=1,
+        max_value=max_selected_connectors,
+        value=10,
+        step=1
+    )
 uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 
 if uploaded_file is not None:
-    dfs = generate_df(uploaded_file)
+    dfs,n_jumpers = generate_df(uploaded_file,selected_connector_number)
+    max_selected_connectors = n_jumpers
     plots = generate_plots()
 
     st.subheader("Overview Table")

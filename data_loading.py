@@ -274,7 +274,7 @@ class DataCore():
     def jumper_combinations(self, IL_data : pd.DataFrame, n_choices : int) -> list[np.ndarray]:
 
         if n_choices > self.n_jumpers(IL_data):
-            print(f"Cannot chose {n_choices} from {self.n_jumpers}.")
+            print(f"Cannot chose {n_choices} from {self.n_jumpers(IL_data)}.")
 
         all_combinations_tupples = it.combinations(range(0,self.n_jumpers(IL_data)),n_choices)
 
@@ -370,7 +370,7 @@ class DataCore():
         float_cast = A.astype(float)
         return float_cast[~np.isnan(float_cast)]
 
-def generate_df(file_path):
+def generate_df(file_path, selected_connector_number):
 
     #example
     DC = DataCore()
@@ -400,10 +400,12 @@ def generate_df(file_path):
     df1
     #-----------------------------------------------------------------
 
-    wave_combinations_IL_unfiltered = DC.jumper_combinations_all_wavelengths(4)
+    if selected_connector_number > num_jumpers:
+        selected_connector_number = num_jumpers -1
+
+    wave_combinations_IL_unfiltered = DC.jumper_combinations_all_wavelengths(selected_connector_number)
     # print(wave_combinations_IL_unfiltered)
     wave_combinations_IL = DC.map_dict(DC.filter_nan, wave_combinations_IL_unfiltered)
-
     wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_std = DC.map_dict(lambda arr : np.std(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_97th = DC.map_dict(lambda arr : np.percentile(arr,97,axis=1), wave_combinations_IL)
@@ -416,19 +418,24 @@ def generate_df(file_path):
     # print(wave_combinations_IL_97th[1550][:10])
 
 
-    mean_values = wave_combinations_IL_mean[1550]
-    std_values = wave_combinations_IL_std[1550]
-    percentile_97th_values = wave_combinations_IL_97th[1550]
+    # Not always present
 
     data2 = {
-        'Mean': mean_values,
-        'Std': std_values,
-        '97th Percentile': percentile_97th_values
+        'Wavelength' : [],
+        'Mean': [],
+        'Std': [],
+        '97th Percentile': []
     }
+
+    for wavelength in wave_combinations_IL:
+        data2['Wavelength'].append(wavelength)
+        data2['Mean'].append(wave_combinations_IL_mean[wavelength])
+        data2['Std'].append(wave_combinations_IL_std[wavelength])
+        data2['97th Percentile'].append(wave_combinations_IL_97th[wavelength])
 
     df2 = pd.DataFrame(data2)
 
-
+    print(df2.head())
     #-----------------------------------------------------------------
 
     wave_IL_unfiltered = DC.IL_wavelengths()
@@ -514,4 +521,4 @@ def generate_df(file_path):
 
     df6 = pd.DataFrame(data6)
 
-    return (df1, df2, df3, df4, df5, df6)
+    return (df1, df2, df3, df4, df5, df6) , num_jumpers

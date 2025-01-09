@@ -110,7 +110,7 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 if uploaded_file is not None:
     dfs,n_jumpers = generate_df(uploaded_file,selected_connector_number)
     max_selected_connectors = n_jumpers
-    plots = generate_plots()
+    plots = generate_plots(uploaded_file)
 
     st.subheader("Overview Table")
     st.write(dfs[0])
@@ -129,8 +129,18 @@ if uploaded_file is not None:
         "All wavelengths",
         "Reference connectors",
         "dut connectors",
-        "All fibers"
+        "Mean Jumpers",
+        "Jumpers Std",
+        "Mean 1550",
+        "Mean 1650",
+        "Mean 1770",
+        "97th 1550",
+        "97th 1650",
+        "97th 1770",
+        "Mean Connectors",
+        "Connectors Std"
     ]
+
 
     tabs = st.tabs(tab_titles)
 
@@ -151,14 +161,15 @@ if uploaded_file is not None:
             )
             buf.close()
 
-            st.write(dfs[i+1])
+            if i + 1 < len(dfs):  # Check if DataFrame exists
+                st.write(dfs[i+1])
 
-            csv_data = convert_df_to_csv(dfs[i+1])
-            st.download_button(
-                label=f"Download Table {i+1} as CSV",
-                data=csv_data,
-                file_name=f"table_{i+1}.csv",
-                mime="text/csv"
+                csv_data = convert_df_to_csv(dfs[i+1])
+                st.download_button(
+                    label=f"Download Table {i+1} as CSV",
+                    data=csv_data,
+                    file_name=f"table_{i+1}.csv",
+                    mime="text/csv"
             )
 
 

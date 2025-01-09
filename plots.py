@@ -139,7 +139,7 @@ def plot1550vs1310(DC):
     """
     
     # Zaczytanie danych tłumienności dla wszystkich długości fal (IL dla konektorów)
-    IL_data = DC.IL_reference_s()
+    IL_data = DC.IL_reference_connectors()
 
     # Długości fal (muszą być dostępne w danych)
     wavelengths = DC.wavelengths()

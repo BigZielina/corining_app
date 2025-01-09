@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import zipfile
 from data_loading import DataCore, generate_df  # Import DataCore from data_loading.py
-from plots import generate_plots
+from plots import generate_plots,generate_tab_titles
 from raport import create_pdf
 from reportlab.platypus import SimpleDocTemplate
 from reportlab.lib.pagesizes import letter
@@ -111,7 +111,7 @@ if uploaded_file is not None:
     dfs,n_jumpers = generate_df(uploaded_file,selected_connector_number)
     max_selected_connectors = n_jumpers
     plots = generate_plots(uploaded_file)
-
+    tab_titles = generate_tab_titles()
     st.subheader("Overview Table")
     st.write(dfs[0])
 
@@ -124,22 +124,22 @@ if uploaded_file is not None:
         mime="application/zip"
     )
 
-    tab_titles = [
-        "Combinations of connectors for all wavelengths",
-        "All wavelengths",
-        "Reference connectors",
-        "dut connectors",
-        "Mean Jumpers",
-        "Jumpers Std",
-        "Mean 1550",
-        "Mean 1650",
-        "Mean 1770",
-        "97th 1550",
-        "97th 1650",
-        "97th 1770",
-        "Mean Connectors",
-        "Connectors Std"
-    ]
+    # tab_titles = [
+    #     "Combinations of connectors for all wavelengths",
+    #     "All wavelengths",
+    #     "Reference connectors",
+    #     "dut connectors",
+    #     "Mean Jumpers",
+    #     "Jumpers Std",
+    #     "Mean 1550",
+    #     "Mean 1650",
+    #     "Mean 1770",
+    #     "97th 1550",
+    #     "97th 1650",
+    #     "97th 1770",
+    #     "Mean Connectors",
+    #     "Connectors Std"
+    # ]
 
 
     tabs = st.tabs(tab_titles)

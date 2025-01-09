@@ -33,20 +33,17 @@ def generate_plots(uploaded_path):
     return tuple(figs)
 
 def generate_tab_titles():
-    titles = ["Combinations of connectors for all wavelengths",
-        "All wavelengths",
-        "Reference connectors",
-        "dut connectors",
-        "Mean Jumpers",
-        "Jumpers Std",]
-
+    titles = []
     for wavelength in DC.wavelengths():
-        titles.append(f"Mean {wavelength}")
-        titles.append(f"97th {wavelength}")
+    titles.append(f"Weibull distribution {wavelength}")
+     titles += ["1550v1310d", "Jumper Mean", "Jumper Std"]
+    for wavelength in DC.wavelengths():
+    titles.append(f"RM286_IL_Mean {wavelength}")
+        titles.append(f"RM286_IL_97th {wavelength}")
 
     titles += ["Mean Connectors",
         "Connectors Std"]
-    
+
     return titles
 
 def connector_ilstd_plot(wavelengths, data_core = DC):

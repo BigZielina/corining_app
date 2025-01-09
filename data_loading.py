@@ -421,21 +421,16 @@ def generate_df(file_path, selected_connector_number):
     # Not always present
 
     data2 = {
-        'Wavelength' : [],
-        'Mean': [],
-        'Std': [],
-        '97th Percentile': []
+    'Wavelength': list(wave_combinations_IL.keys()),
+    'Mean': list(wave_combinations_IL_mean.values()),
+    'Std': list(wave_combinations_IL_std.values()),
+    '97th Percentile': list(wave_combinations_IL_97th.values())
     }
 
-    for wavelength in wave_combinations_IL:
-        data2['Wavelength'].append(wavelength)
-        data2['Mean'].append(wave_combinations_IL_mean[wavelength])
-        data2['Std'].append(wave_combinations_IL_std[wavelength])
-        data2['97th Percentile'].append(wave_combinations_IL_97th[wavelength])
+    
 
     df2 = pd.DataFrame(data2)
 
-    print(df2.head())
     #-----------------------------------------------------------------
 
     wave_IL_unfiltered = DC.IL_wavelengths()

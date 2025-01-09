@@ -39,6 +39,7 @@ def generate_tab_titles():
     titles += ["1550v1310d", "Jumper Mean", "Jumper Std"]
     for wavelength in DC.wavelengths():
         titles.append(f"RM286_IL_Mean {wavelength}")
+    for wavelength in DC.wavelengths():
         titles.append(f"RM286_IL_97th {wavelength}")
 
     titles += ["Mean Connectors",
@@ -244,9 +245,11 @@ def rm286_ilmean_plot(data_core: DataCore):
         
     return plots
 
+
 def rm286_il97th_plot_filtered(data_core: DataCore):
     """
     Plot histograms of filtered IL 97th percentile values for all wavelengths.
+    Thresholds are dynamically adjusted based on mean and standard deviation.
 
     Parameters:
     ----------
@@ -273,6 +276,10 @@ def rm286_il97th_plot_filtered(data_core: DataCore):
         mean = np.mean(data)
         std_dev = np.std(data)
 
+        # Define dynamic thresholds
+        lower_threshold = max(mean - std_dev, 0)  # Ensure lower threshold is non-negative
+        upper_threshold = mean + std_dev
+
         # Plot histogram
         fig = plt.figure(figsize=(8, 5))
         plt.hist(data, bins=20, color='blue', alpha=0.7, label='Data distribution')
@@ -284,9 +291,9 @@ def rm286_il97th_plot_filtered(data_core: DataCore):
         plt.axvline(mean - std_dev, color='green', linestyle='--', label=f'Mean - 1 SD = {mean - std_dev:.2f}')
         plt.axvline(mean + std_dev, color='green', linestyle='--', label=f'Mean + 1 SD = {mean + std_dev:.2f}')
 
-        # Add additional vertical lines at specific values
-        plt.axvline(0.15, color='purple', linestyle='-', label='Threshold = 0.15')
-        plt.axvline(0.25, color='orange', linestyle='-', label='Threshold = 0.25')
+        # Plot dynamic thresholds
+        plt.axvline(lower_threshold, color='purple', linestyle='-', label=f'Lower Threshold = {lower_threshold:.2f}')
+        plt.axvline(upper_threshold, color='orange', linestyle='-', label=f'Upper Threshold = {upper_threshold:.2f}')
 
         # Add legend, title, and labels
         plt.legend()
@@ -301,7 +308,6 @@ def rm286_il97th_plot_filtered(data_core: DataCore):
         plots.append(fig)
         
     return plots
-
 def jumper_mean_plot_sorted(DC, n_choices=1):
     """
     Tworzy wykres przedstawiający średnią wartość dla różnych jumperów i długości fal, 

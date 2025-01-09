@@ -139,7 +139,7 @@ def plot1550vs1310(DC):
     """
     
     # Zaczytanie danych tłumienności dla wszystkich długości fal (IL dla konektorów)
-    IL_data = DC.IL_reference_connectors()
+    IL_data = DC.IL_reference_s()
 
     # Długości fal (muszą być dostępne w danych)
     wavelengths = DC.wavelengths()
@@ -485,14 +485,27 @@ def connector_std_plot_sorted(DC):
     
     # Wybór pierwszej długości fali do sortowania
     wavelength_to_sort = wavelengths[0]
-    IL_data_to_sort = IL_data[0]  # Zakładamy, że dane są posortowane według długości fal w IL_data
+    IL_data_to_sort = IL_data[0]  # Dane dla pierwszej długości fali
+    
+    # Usuwanie NaN przed obliczaniem odchylenia standardowego
+    IL_data_to_sort_clean = [
+        np.array(connector_data, dtype=float) for connector_data in IL_data_to_sort
+    ]
+    IL_data_to_sort_clean = [
+        connector_data[~np.isnan(connector_data)] for connector_data in IL_data_to_sort_clean
+    ]
     
     # Obliczanie wartości odchyleń standardowych dla connectorów przy wybranej długości fali
-    std_values_to_sort = np.array([np.std(IL_data_to_sort[connector - 1]) for connector in connector_numbers])
+    std_values = np.array([np.std(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_to_sort_clean])
     
-    # Sortowanie connectorów na podstawie std values
-    sorted_indices = np.argsort(std_values_to_sort)
-    sorted_connector_numbers = connector_numbers[sorted_indices]
+    # Usuwanie NaN z std_values przed sortowaniem
+    clean_indices = ~np.isnan(std_values)
+    std_values_clean = std_values[clean_indices]
+    connector_numbers_clean = connector_numbers[clean_indices]
+    
+    # Sortowanie connectorów na podstawie wartości odchyleń standardowych
+    sorted_indices = np.argsort(std_values_clean)
+    sorted_connector_numbers = connector_numbers_clean[sorted_indices]
     
     # Tworzenie wykresu
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -502,11 +515,22 @@ def connector_std_plot_sorted(DC):
     
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
-        # Obliczanie std values dla wszystkich connectorów
-        std_values = np.array([np.std(IL_data[idx][connector - 1]) for connector in connector_numbers])
+        # Usuwanie NaN przed obliczaniem odchylenia standardowego dla danej długości fali
+        IL_data_clean = [
+            np.array(connector_data, dtype=float) for connector_data in IL_data[idx]
+        ]
+        IL_data_clean = [
+            connector_data[~np.isnan(connector_data)] for connector_data in IL_data_clean
+        ]
         
-        # Sortowanie std values zgodnie z posortowanymi connectorami
-        sorted_std_values = std_values[sorted_indices]
+        # Obliczanie odchyleń standardowych dla wszystkich connectorów
+        std_values = np.array([np.std(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_clean])
+        
+        # Usuwanie NaN z obliczonych wartości odchyleń standardowych
+        std_values_clean = std_values[~np.isnan(std_values)]
+        
+        # Sortowanie odchyleń standardowych zgodnie z posortowanymi connectorami
+        sorted_std_values = std_values_clean[sorted_indices]
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -529,7 +553,6 @@ def connector_std_plot_sorted(DC):
     
     # Dodanie legendy
     ax.legend(loc='best')
-    
     plt.grid(True)
     plt.tight_layout()  # Poprawienie układu wykresu
     plt.show()
@@ -538,8 +561,8 @@ def connector_std_plot_sorted(DC):
 
 def connector_mean_plot_sorted(DC):
     """
-    Tworzy wykres przedstawiający odchylenie standardowe IL dla różnych connectorów i długości fal,
-    z uporządkowaną osią X tak, aby na początku (x=1) był numer connectora z najniższym std value.
+    Tworzy wykres przedstawiający średnią IL dla różnych connectorów i długości fal,
+    z uporządkowaną osią X tak, aby na początku (x=1) był numer connectora z najniższą średnią wartością IL.
     
     DC: DataCore
         Obiekt klasy DataCore zawierający dane.
@@ -553,12 +576,25 @@ def connector_mean_plot_sorted(DC):
     wavelength_to_sort = wavelengths[0]
     IL_data_to_sort = IL_data[0]  # Zakładamy, że dane są posortowane według długości fal w IL_data
     
-    # Obliczanie wartości odchyleń standardowych dla connectorów przy wybranej długości fali
-    mean_values = np.array([np.mean(IL_data_to_sort[connector - 1]) for connector in connector_numbers])
+    # Usuwanie NaN przed obliczaniem średniej
+    IL_data_to_sort_clean = [
+        np.array(connector_data, dtype=float) for connector_data in IL_data_to_sort
+    ]
+    IL_data_to_sort_clean = [
+        connector_data[~np.isnan(connector_data)] for connector_data in IL_data_to_sort_clean
+    ]
     
-    # Sortowanie connectorów na podstawie std values
-    sorted_indices = np.argsort(mean_values)
-    sorted_connector_numbers = connector_numbers[sorted_indices]
+    # Obliczanie wartości średnich dla connectorów przy wybranej długości fali
+    mean_values = np.array([np.mean(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_to_sort_clean])
+    
+    # Usuwanie NaN z mean_values przed sortowaniem
+    clean_indices = ~np.isnan(mean_values)
+    mean_values_clean = mean_values[clean_indices]
+    connector_numbers_clean = connector_numbers[clean_indices]
+    
+    # Sortowanie connectorów na podstawie wartości średnich
+    sorted_indices = np.argsort(mean_values_clean)
+    sorted_connector_numbers = connector_numbers_clean[sorted_indices]
     
     # Tworzenie wykresu
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -568,11 +604,22 @@ def connector_mean_plot_sorted(DC):
     
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
-        # Obliczanie std values dla wszystkich connectorów
-        m_values = np.array([np.mean(IL_data[idx][connector - 1]) for connector in connector_numbers])
+        # Usuwanie NaN przed obliczaniem średniej dla danej długości fali
+        IL_data_clean = [
+            np.array(connector_data, dtype=float) for connector_data in IL_data[idx]
+        ]
+        IL_data_clean = [
+            connector_data[~np.isnan(connector_data)] for connector_data in IL_data_clean
+        ]
         
-        # Sortowanie std values zgodnie z posortowanymi connectorami
-        sorted_mean_values = m_values[sorted_indices]
+        # Obliczanie średnich dla wszystkich connectorów
+        mean_values = np.array([np.mean(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_clean])
+        
+        # Usuwanie NaN z obliczonych wartości średnich
+        mean_values_clean = mean_values[~np.isnan(mean_values)]
+        
+        # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
+        sorted_mean_values = mean_values_clean[sorted_indices]
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -595,10 +642,9 @@ def connector_mean_plot_sorted(DC):
     
     # Dodanie legendy
     ax.legend(loc='best')
-    
+    print(sorted_mean_values)
     plt.grid(True)
     plt.tight_layout()  # Poprawienie układu wykresu
-    plt.show()
+    plt.show()    
     
     return fig
-

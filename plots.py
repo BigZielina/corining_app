@@ -35,10 +35,10 @@ def generate_plots(uploaded_path):
 def generate_tab_titles():
     titles = []
     for wavelength in DC.wavelengths():
-    titles.append(f"Weibull distribution {wavelength}")
-     titles += ["1550v1310d", "Jumper Mean", "Jumper Std"]
+        titles.append(f"Weibull distribution {wavelength}")
+    titles += ["1550v1310d", "Jumper Mean", "Jumper Std"]
     for wavelength in DC.wavelengths():
-    titles.append(f"RM286_IL_Mean {wavelength}")
+        titles.append(f"RM286_IL_Mean {wavelength}")
         titles.append(f"RM286_IL_97th {wavelength}")
 
     titles += ["Mean Connectors",
@@ -559,6 +559,9 @@ def connector_std_plot_sorted(DC):
     
     return fig
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 def connector_mean_plot_sorted(DC):
     """
     Tworzy wykres przedstawiający średnią IL dla różnych connectorów i długości fal,
@@ -631,7 +634,6 @@ def connector_mean_plot_sorted(DC):
             marker='x'
         )
     
-    # Ustawienie etykiet na osi X zgodnie z numerami connectorów
     ax.set_xticks(range(1, len(sorted_connector_numbers) + 1))
     ax.set_xticklabels(sorted_connector_numbers)  # Etykiety to posortowane numery connectorów
     
@@ -640,11 +642,9 @@ def connector_mean_plot_sorted(DC):
     ax.set_ylabel('Mean of IL')
     ax.set_title('Sorted Mean of IL Values for Connectors Across Different Wavelengths')
     
-    # Dodanie legendy
     ax.legend(loc='best')
-    print(sorted_mean_values)
     plt.grid(True)
-    plt.tight_layout()  # Poprawienie układu wykresu
-    plt.show()    
+    plt.tight_layout()
+    plt.show()
     
     return fig

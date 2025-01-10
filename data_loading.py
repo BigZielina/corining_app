@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import itertools as it
 import xlsxwriter
-from collections.abc import Callable
 import regex
 import xlsxwriter.utility
 class DataCore():

@@ -163,7 +163,7 @@ if uploaded_file is not None:
 
 
     st.download_button(
-        label="Generate and Download PDF Raport",
+        label="Generate and Download PDF Report",
         data=save_pdf(create_pdf(tab_titles, plots, dfs)),
         file_name="RM_report.pdf",
         mime="application/pdf",

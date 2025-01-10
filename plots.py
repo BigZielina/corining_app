@@ -208,7 +208,6 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     wavelengths = data_core.wavelengths()
     wave_combinations_IL_unfiltered = data_core.jumper_combinations_all_wavelengths(selected_connector_number)
     wave_combinations_IL = data_core.map_dict(data_core.filter_nan, wave_combinations_IL_unfiltered)
-    print(wave_combinations_IL[wavelengths[0]].shape, "test")
     wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     
     plots = []

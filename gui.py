@@ -95,22 +95,25 @@ with st.expander("Generate Excel Template"):
 #     data=open(template_csv, 'rb').read(),
 #     file_name="template.xlsx"
 # )
-max_selected_connectors = 100
-with st.expander("RM number of jumper choices"):
-    st.write("Provide the desired number of jumpers to be chosen in each random mating")
-    selected_connector_number = st.number_input(
-        "Number of choices",
-        min_value=1,
-        max_value=max_selected_connectors,
-        value=10,
-        step=1
-    )
+
 uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 
 if uploaded_file is not None:
-    dfs,n_jumpers = generate_df(uploaded_file,selected_connector_number)
+    
+    dfs,n_jumpers = generate_df(uploaded_file,10)
+
+    with st.expander("RM number of jumper choices"):
+        st.write("Provide the desired number of jumpers to be chosen in each random mating")
+        selected_connector_number = st.number_input(
+            "Number of choices",
+            min_value=1,
+            max_value=n_jumpers,
+            value=n_jumpers-1 if n_jumpers > 1 else 1,
+            step=1
+        )
+
     max_selected_connectors = n_jumpers
-    plots = generate_plots(uploaded_file)
+    plots = generate_plots(uploaded_file,selected_connector_number)
     tab_titles = generate_tab_titles()
     st.subheader("Overview Table")
     st.write(dfs[0])

@@ -5,7 +5,7 @@ from data_loading import DataCore
 
 DC = DataCore()
 
-def generate_plots(uploaded_path):
+def generate_plots(uploaded_path,selected_connector_number ):
     # do tego tupla z wykresu 
     DC.load_excel(uploaded_path)
     figs = []
@@ -17,7 +17,7 @@ def generate_plots(uploaded_path):
     figs.append(jumper_mean_plot_sorted(DC, n_choices=1))
     figs.append(jumper_std_plot_sorted(DC, n_choices=1))
     figs.extend(rm286_ilmean_plot(DC))
-    figs.extend(rm286_il97th_plot_filtered(DC))
+    figs.extend(rm286_il97th_plot_filtered(DC,selected_connector_number))
     figs.append(connector_mean_plot_sorted(DC))
     figs.append(connector_std_plot_sorted(DC))
     
@@ -205,12 +205,15 @@ def rm286_ilmean_plot(data_core: DataCore):
         An instance of the DataCore class with loaded Excel data.
     """
     wavelengths = data_core.wavelengths()
+    
     plots = []
     
     for wavelength in wavelengths:
         # Get mean IL values for all connectors for the given wavelength
         data = data_core.IL_wavelength(wavelength).iloc[2:, 2:].to_numpy().astype(float)
         data = data[~np.isnan(data)]  # Filter NaN values
+
+
 
         # Calculate statistics
         mean = np.mean(data)
@@ -245,7 +248,7 @@ def rm286_ilmean_plot(data_core: DataCore):
     return plots
 
 
-def rm286_il97th_plot_filtered(data_core: DataCore):
+def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
     """
     Plot histograms of filtered IL 97th percentile values for all wavelengths.
     Thresholds are dynamically adjusted based on mean and standard deviation.
@@ -260,7 +263,7 @@ def rm286_il97th_plot_filtered(data_core: DataCore):
 
     for wavelength in wavelengths:
         # Retrieve 97th percentile values for all connectors
-        wave_combinations_IL_unfiltered = data_core.jumper_combinations_all_wavelengths(4)
+        wave_combinations_IL_unfiltered = data_core.jumper_combinations_all_wavelengths(selected_connector_number)
         wave_combinations_IL = data_core.map_dict(data_core.filter_nan, wave_combinations_IL_unfiltered)
 
         # Calculate 97th percentile for each connector combination

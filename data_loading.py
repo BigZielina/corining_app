@@ -249,7 +249,7 @@ class DataCore():
         return self.excel_data[wavelength]
 
 
-    def filter_n_jumper(self,IL_data : pd.DataFrame, jumper_indecies : list[int]) -> np.ndarray:
+    def filter_n_jumper(self,IL_data : np.ndarray,n_connectors : int, jumper_indecies : list[int]) -> np.ndarray:
         """Filters the data to only include the data for a given jumper indecies
 
         Works only on data of shape m^2 x n. In practive this means using data from
@@ -265,9 +265,9 @@ class DataCore():
         excel_indecies = []
         for index_reference in connector_indecies:
             for index_dut in connector_indecies:
-                excel_indecies.append(index_reference*self.n_connectors(IL_data)+index_dut)
+                excel_indecies.append(index_reference*n_connectors+index_dut)
 
-        return self.all_IL_values(IL_data)[excel_indecies,:]
+        return IL_data[excel_indecies,:]
 
 
     def jumper_combinations(self, IL_data : pd.DataFrame, n_choices : int) -> list[np.ndarray]:
@@ -275,13 +275,19 @@ class DataCore():
         if n_choices > self.n_jumpers(IL_data):
             print(f"Cannot chose {n_choices} from {self.n_jumpers(IL_data)}.")
 
-        all_combinations_tupples = it.combinations(range(0,self.n_jumpers(IL_data)),n_choices)
+        all_combinations_tupples = list(it.combinations(range(0,self.n_jumpers(IL_data)),n_choices))
+        print(len(all_combinations_tupples), "N comb")
+        if len(all_combinations_tupples) > 1e5:
+            print("WARN! Number of combinations is larger than 10 000! This will have a huge impact on performance")
 
         IL_data_combinations = []
 
-        for combination in all_combinations_tupples:
 
-            data = self.filter_n_jumper(IL_data,list(combination))
+        IL_data_numpy = self.all_IL_values(IL_data)
+        for combination in all_combinations_tupples:
+            print(combination)
+
+            data = self.filter_n_jumper(IL_data_numpy,self.n_connectors(IL_data),list(combination))
 
             IL_data_combinations.append(data)
 
@@ -386,9 +392,9 @@ def generate_df(file_path, selected_connector_number):
     num_jumpers = DC.n_jumpers(test_sheet)
     num_fibers = DC.n_fibers(test_sheet)
 
-    # print(f"Number of connectors {DC.n_connectors(test_sheet)}")
-    # print(f"Number of jumper {DC.n_jumpers(test_sheet)}")
-    # print(f"Number of fiber {DC.n_fibers(test_sheet)}")
+    print(f"Number of connectors {DC.n_connectors(test_sheet)}")
+    print(f"Number of jumper {DC.n_jumpers(test_sheet)}")
+    print(f"Number of fiber {DC.n_fibers(test_sheet)}")
 
     data1 = {
     'Type': ['Number of Connectors', 'Number of Jumpers', 'Number of Fibers'],
@@ -401,10 +407,13 @@ def generate_df(file_path, selected_connector_number):
 
     if selected_connector_number > num_jumpers:
         selected_connector_number = num_jumpers -1
-
+    print("Jumpers")
     wave_combinations_IL_unfiltered = DC.jumper_combinations_all_wavelengths(selected_connector_number)
     # print(wave_combinations_IL_unfiltered)
+    print("Filtering")
     wave_combinations_IL = DC.map_dict(DC.filter_nan, wave_combinations_IL_unfiltered)
+    for x in wave_combinations_IL:
+        print(wave_combinations_IL[x].shape)
     wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_std = DC.map_dict(lambda arr : np.std(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_97th = DC.map_dict(lambda arr : np.percentile(arr,97,axis=1), wave_combinations_IL)

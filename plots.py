@@ -16,7 +16,7 @@ def generate_plots(uploaded_path,selected_connector_number ):
 
     figs.append(jumper_mean_plot_sorted(DC, n_choices=1))
     figs.append(jumper_std_plot_sorted(DC, n_choices=1))
-    figs.extend(rm286_ilmean_plot(DC))
+    figs.extend(rm286_ilmean_plot(DC, selected_connector_number))
     figs.extend(rm286_il97th_plot_filtered(DC,selected_connector_number))
     figs.append(connector_mean_plot_sorted(DC))
     figs.append(connector_std_plot_sorted(DC))
@@ -96,6 +96,7 @@ def plot_weibull_distribution(il_values, wavelength):
         return shape, scale, x, pdf_fitted
     
     shape, scale, x, pdf_fitted = weibull_distribution_fit(il_values)
+
     
     # Calculate the mean of the IL values
     mean_il = np.mean(il_values)
@@ -195,7 +196,7 @@ def plot1550vs1310(DC):
     plt.show()
     return fig
 
-def rm286_ilmean_plot(data_core: DataCore):
+def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     """
     Plot histograms of IL mean values for all wavelengths with statistics.
 
@@ -205,14 +206,18 @@ def rm286_ilmean_plot(data_core: DataCore):
         An instance of the DataCore class with loaded Excel data.
     """
     wavelengths = data_core.wavelengths()
+    wave_combinations_IL_unfiltered = data_core.jumper_combinations_all_wavelengths(selected_connector_number)
+    wave_combinations_IL = data_core.map_dict(data_core.filter_nan, wave_combinations_IL_unfiltered)
+    print(wave_combinations_IL[wavelengths[0]].shape, "test")
+    wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     
     plots = []
     
     for wavelength in wavelengths:
         # Get mean IL values for all connectors for the given wavelength
-        data = data_core.IL_wavelength(wavelength).iloc[2:, 2:].to_numpy().astype(float)
-        data = data[~np.isnan(data)]  # Filter NaN values
 
+        
+        data = wave_combinations_IL_mean[wavelength]
 
 
         # Calculate statistics

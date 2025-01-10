@@ -9,8 +9,12 @@ from svglib.svglib import svg2rlg
 import pandas as pd
 import numpy as np
 
+import itertools
+
 
 def prepare_table(table : pd.DataFrame) -> Table:
+    if table is 0:
+        return
     tablist = []
     cols = table.columns
     #print(cols)
@@ -49,6 +53,8 @@ def prepare_table(table : pd.DataFrame) -> Table:
     return tablist
 
 def prepare_plot(plot : plt.subplots) -> Image:
+    if plot == 0:
+        return
     imgdata = BytesIO()
     plot.savefig(imgdata, format='svg')
     imgdata.seek(0)  # rewind the data
@@ -73,7 +79,7 @@ def create_pdf(names, plots, tables):
                 <b>A RM test raport</b>''',
                 styleSheet["Heading1"]), t]
 
-    for name, plot, table in zip(names, plots, Ltables):
+    for name, plot, table in itertools.zip_longest(names, plots, Ltables, fillvalue=0):
 
         print(name)
         story.append(Paragraph(name,styleSheet["Heading3"]))

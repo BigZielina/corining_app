@@ -114,7 +114,7 @@ def plot_weibull_distribution(il_values, wavelength):
     plt.ylabel('Density')
     plt.legend()
     plt.show()
-    return fig
+    return [fig, [shape, scale, mean_il]]
 
 def generate_weibull_distribution_for_wavelengths(DC):
     """Generate Weibull distribution for each wavelength"""
@@ -194,7 +194,7 @@ def plot1550vs1310(DC):
 
     # Pokaż wykres
     plt.show()
-    return fig
+    return [fig, [rmse, r2, z[0], z[1]]]
 
 def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     """
@@ -212,6 +212,7 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     
     plots = []
+    stat=[]
     
     for wavelength in wavelengths:
         # Get mean IL values for all connectors for the given wavelength
@@ -223,6 +224,7 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
         # Calculate statistics
         mean = np.mean(data)
         std_dev = np.std(data)
+        stat.append([mean, std_dev])
 
         # Plot histogram
         fig = plt.figure(figsize=(8, 5))
@@ -250,7 +252,7 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
         plt.show()
         plots.append(fig)
         
-    return plots
+    return [plots, stat]
 
 
 def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
@@ -265,6 +267,7 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
     """
     wavelengths = data_core.wavelengths()
     plots = []
+    stat = []
 
     for wavelength in wavelengths:
         # Retrieve 97th percentile values for all connectors
@@ -286,6 +289,8 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
         # Define dynamic thresholds
         lower_threshold = max(mean - std_dev, 0)  # Ensure lower threshold is non-negative
         upper_threshold = mean + std_dev
+
+        stat.append([mean, std_dev, lower_threshold, upper_threshold])
 
         # Plot histogram
         fig = plt.figure(figsize=(8, 5))
@@ -314,7 +319,8 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
         
         plots.append(fig)
         
-    return plots
+    return [plots, stat]
+
 def jumper_mean_plot_sorted(DC, n_choices=1):
     """
     Tworzy wykres przedstawiający średnią wartość dla różnych jumperów i długości fal, 
@@ -357,6 +363,8 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     # Przygotowanie kolorów dla różnych długości fal
     colors = plt.cm.viridis(np.linspace(0, 1, len(wavelength_IL_combinations)))
     
+    all_mean_values = []
+
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
     for idx, (wavelength, IL_data) in enumerate(wavelength_IL_combinations.items()):
         # Obliczamy średnie wartości dla wszystkich jumperów
@@ -368,7 +376,8 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
         
         # Sortowanie średnich wartości zgodnie z kolejnością jumperów
         sorted_mean_values = np.array(mean_values)[sorted_indices]
-        
+        all_mean_values.append(sorted_mean_values)
+
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_jumper_numbers) + 1),  # Indeksy na osi X od 1 do n
@@ -393,7 +402,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     
     plt.grid(True)
     plt.show()    
-    return fig
+    return [fig, all_mean_values]
 
 def jumper_std_plot_sorted(DC, n_choices=1):
     """
@@ -439,6 +448,8 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     # Przygotowanie kolorów dla różnych długości fal
     colors = plt.cm.viridis(np.linspace(0, 1, len(wavelength_IL_combinations)))
     
+    all_std_values = []
+
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
     for idx, (wavelength, IL_data) in enumerate(wavelength_IL_combinations.items()):
         # Sprawdzanie i usuwanie wartości NaN w danych dla bieżącej długości fali
@@ -455,7 +466,8 @@ def jumper_std_plot_sorted(DC, n_choices=1):
         
         # Sortowanie odchyleń standardowych zgodnie z kolejnością jumperów
         sorted_std_values = np.array(std_values)[sorted_indices]
-        
+        all_std_values.append(sorted_std_values)
+
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_jumper_numbers) + 1),  # Indeksy na osi X od 1 do n
@@ -481,7 +493,7 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     plt.grid(True)
     plt.show()
     
-    return fig
+    return [fig, all_std_values]
 
 def connector_std_plot_sorted(DC):
     """
@@ -526,6 +538,8 @@ def connector_std_plot_sorted(DC):
     # Przygotowanie kolorów dla różnych długości fal
     colors = plt.cm.viridis(np.linspace(0, 1, len(wavelengths)))
     
+    all_std_values = []
+
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
         # Usuwanie NaN przed obliczaniem odchylenia standardowego dla danej długości fali
@@ -544,7 +558,7 @@ def connector_std_plot_sorted(DC):
         
         # Sortowanie odchyleń standardowych zgodnie z posortowanymi connectorami
         sorted_std_values = std_values_clean[sorted_indices]
-        
+        all_std_values.append(sorted_std_values)
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
@@ -570,10 +584,8 @@ def connector_std_plot_sorted(DC):
     plt.tight_layout()  # Poprawienie układu wykresu
     plt.show()
     
-    return fig
+    return [fig, all_std_values]
 
-import matplotlib.pyplot as plt
-import numpy as np
 
 def connector_mean_plot_sorted(DC):
     """
@@ -618,6 +630,8 @@ def connector_mean_plot_sorted(DC):
     # Przygotowanie kolorów dla różnych długości fal
     colors = plt.cm.viridis(np.linspace(0, 1, len(wavelengths)))
     
+    all_mean_values = []
+
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
         # Usuwanie NaN przed obliczaniem średniej dla danej długości fali
@@ -636,7 +650,8 @@ def connector_mean_plot_sorted(DC):
         
         # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
         sorted_mean_values = mean_values_clean[sorted_indices]
-        
+        all_mean_values.append(sorted_mean_values)
+
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
@@ -660,4 +675,4 @@ def connector_mean_plot_sorted(DC):
     plt.tight_layout()
     plt.show()
     
-    return fig
+    return [fig, all_mean_values]

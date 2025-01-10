@@ -31,13 +31,14 @@ def prepare_table(table : pd.DataFrame) -> Table:
             t = [cols, t] 
         else:
             t = list(map(list, t))
-            t = map(np.round, t)
+            t = list(map(np.round, t))
             print(type(t))
             print(type(t[0]))
             
             for i, row in enumerate(t):
                 print(len(row))
                 print(cols)
+                row = row.tolist()
                 row.insert(0, cols[i])
 
         t=Table(t,style=[

@@ -1,14 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-import pandas as pd
-import numpy as np
-import itertools as it
-import xlsxwriter
-from collections.abc import Callable
-import matplotlib.pyplot as plt
-import numpy as np
-import data_loading
 import scipy.stats as stats
 from data_loading import DataCore
 
@@ -33,12 +24,20 @@ def generate_plots(uploaded_path):
     return tuple(figs)
 
 def generate_tab_titles():
+    
     titles = []
+
     for wavelength in DC.wavelengths():
         titles.append(f"Weibull distribution {wavelength}")
-    titles += ["1550v1310d", "Jumper Mean", "Jumper Std"]
+
+    if 1550 in DC.wavelengths() and 1310 in DC.wavelengths():
+        titles += ["1550v1310",]
+
+    titles += [ "Jumper Mean", "Jumper Std"]
+
     for wavelength in DC.wavelengths():
         titles.append(f"RM286_IL_Mean {wavelength}")
+
     for wavelength in DC.wavelengths():
         titles.append(f"RM286_IL_97th {wavelength}")
 

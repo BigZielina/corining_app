@@ -96,10 +96,10 @@ with st.expander("Generate Excel Template"):
 #     file_name="template.xlsx"
 # )
 max_selected_connectors = 100
-with st.expander("Select Connector Number"):
-    st.write("Provide the desired connector number below.")
+with st.expander("RM number of jumper choices"):
+    st.write("Provide the desired number of jumpers to be chosen in each random mating")
     selected_connector_number = st.number_input(
-        "Connector Number",
+        "Number of choices",
         min_value=1,
         max_value=max_selected_connectors,
         value=10,
@@ -123,24 +123,6 @@ if uploaded_file is not None:
         file_name="all_data.zip",
         mime="application/zip"
     )
-
-    # tab_titles = [
-    #     "Combinations of connectors for all wavelengths",
-    #     "All wavelengths",
-    #     "Reference connectors",
-    #     "dut connectors",
-    #     "Mean Jumpers",
-    #     "Jumpers Std",
-    #     "Mean 1550",
-    #     "Mean 1650",
-    #     "Mean 1770",
-    #     "97th 1550",
-    #     "97th 1650",
-    #     "97th 1770",
-    #     "Mean Connectors",
-    #     "Connectors Std"
-    # ]
-
 
     tabs = st.tabs(tab_titles)
 

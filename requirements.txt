@@ -1,6 +1,7 @@
 streamlit
 pandas
 numpy
+scipy
 matplotlib
 xlsxwriter
 zipfile36
@@ -8,3 +9,4 @@ openpyxl
 reportlab
 svglib
 regex
+itertools

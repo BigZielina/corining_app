@@ -111,13 +111,14 @@ if uploaded_file is not None:
             value=n_jumpers-1 if n_jumpers > 1 else 1,
             step=1
         )
-
-    max_selected_connectors = n_jumpers
-    dfs, plots = map(list, zip(*generate_plots(uploaded_file,selected_connector_number)))
-    print(dfs)
-    tab_titles = generate_tab_titles()
     st.subheader("Overview Table")
     st.write(dfs[0])
+    max_selected_connectors = n_jumpers
+    plots, dfs = generate_plots(uploaded_file,selected_connector_number)
+    for j, i in enumerate(dfs):
+        print(i)
+    tab_titles = generate_tab_titles()
+
 
     all_plots = save_plots_to_bytes(plots)
     all_data_zip = create_zip_file(dfs, all_plots)

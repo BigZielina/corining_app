@@ -9,19 +9,37 @@ def generate_plots(uploaded_path,selected_connector_number ):
     # do tego tupla z wykresu 
     DC.load_excel(uploaded_path)
     figs = []
-    figs.extend(generate_weibull_distribution_for_wavelengths(DC))    # 3 wykresy
+    dfs = []
+    (fig, df) = generate_weibull_distribution_for_wavelengths(DC)    # 3 wykresy
+    figs.extend(fig)
+    dfs.extend(df)
     plot_vs = plot1550vs1310(DC)    # 1 wykres
+    (fig, df) = plot1550vs1310(DC)
     if plot_vs != None:
-        figs.append(plot_vs)
-
-    figs.append(jumper_mean_plot_sorted(DC, n_choices=1))
-    figs.append(jumper_std_plot_sorted(DC, n_choices=1))
-    figs.extend(rm286_ilmean_plot(DC, selected_connector_number))
-    figs.extend(rm286_il97th_plot_filtered(DC,selected_connector_number))
-    figs.append(connector_mean_plot_sorted(DC))
-    figs.append(connector_std_plot_sorted(DC))
+        figs.append(fig)
+        dfs.append(df)
     
-    return tuple(figs)
+    (fig, df) = jumper_mean_plot_sorted(DC, n_choices=1)
+    figs.append(fig)
+    dfs.append(df)
+    (fig, df) = jumper_std_plot_sorted(DC, n_choices=1)
+    figs.append(fig)
+    dfs.append(df)
+    (fig, df) = rm286_ilmean_plot(DC, selected_connector_number)
+    figs.extend(fig)
+    dfs.extend(df)
+    (fig, df) = rm286_il97th_plot_filtered(DC,selected_connector_number)
+    figs.extend(fig)
+    dfs.extend(df)
+
+    (fig, df) = connector_mean_plot_sorted(DC)
+    figs.append(fig)
+    dfs.append(df)
+    (fig, df) = connector_std_plot_sorted(DC)
+    figs.append(fig)
+    dfs.append(df)
+
+    return [tuple(figs),tuple(dfs)]
 
 def generate_tab_titles():
     
@@ -114,19 +132,21 @@ def plot_weibull_distribution(il_values, wavelength):
     plt.ylabel('Density')
     plt.legend()
     plt.show()
-    return [fig, [shape, scale, mean_il]]
+    return (fig, [shape, scale, mean_il])
 
 def generate_weibull_distribution_for_wavelengths(DC):
     """Generate Weibull distribution for each wavelength"""
     wavelength_IL_unfiltered = DC.IL_wavelengths()
     
-    results = []
-
+    plots = []
+    data  = []
     for wavelength, il_values in wavelength_IL_unfiltered.items():
         il_values_filtered = DC.filter_nan(il_values)  # Clean the data by removing NaNs
-        results.append(plot_weibull_distribution(il_values_filtered, wavelength))
+        plot,partial_data = plot_weibull_distribution(il_values_filtered, wavelength)
+        plots.append(plot)
+        data.append(partial_data)
 
-    return results
+    return (plots,data)
 
 def plot1550vs1310(DC):
     """
@@ -194,7 +214,7 @@ def plot1550vs1310(DC):
 
     # Pokaż wykres
     plt.show()
-    return [fig, [rmse, r2, z[0], z[1]]]
+    return (fig, [rmse, r2, z[0], z[1]])
 
 def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     """
@@ -251,7 +271,7 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
         plt.show()
         plots.append(fig)
         
-    return [plots, stat]
+    return (plots, stat)
 
 
 def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
@@ -318,7 +338,7 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
         
         plots.append(fig)
         
-    return [plots, stat]
+    return (plots, stat)
 
 def jumper_mean_plot_sorted(DC, n_choices=1):
     """
@@ -401,7 +421,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     
     plt.grid(True)
     plt.show()    
-    return [fig, all_mean_values]
+    return (fig, all_mean_values)
 
 def jumper_std_plot_sorted(DC, n_choices=1):
     """
@@ -492,7 +512,7 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     plt.grid(True)
     plt.show()
     
-    return [fig, all_std_values]
+    return (fig, all_std_values)
 
 def connector_std_plot_sorted(DC):
     """
@@ -583,7 +603,7 @@ def connector_std_plot_sorted(DC):
     plt.tight_layout()  # Poprawienie układu wykresu
     plt.show()
     
-    return [fig, all_std_values]
+    return (fig, all_std_values)
 
 
 def connector_mean_plot_sorted(DC):
@@ -674,4 +694,4 @@ def connector_mean_plot_sorted(DC):
     plt.tight_layout()
     plt.show()
     
-    return [fig, all_mean_values]
+    return (fig, all_mean_values)

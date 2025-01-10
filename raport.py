@@ -13,17 +13,13 @@ import itertools
 
 
 def prepare_table(table : pd.DataFrame) -> Table:
-    if table is 0:
-        return
     tablist = []
     cols = table.columns
     #print(cols)
     #print(table)
     tableT = table.T.to_numpy()
     
-    if tableT.shape[1] > 30:
-        T = np.array_split(tableT, 5, axis=1)
-    elif tableT.shape[1] > 5:
+    if tableT.shape[1] > 8:
         T = np.array_split(tableT, 3, axis=1)        
     else:
         T = [tableT]
@@ -49,8 +45,6 @@ def prepare_table(table : pd.DataFrame) -> Table:
     return tablist
 
 def prepare_plot(plot : plt.subplots) -> Image:
-    if plot == 0:
-        return
     imgdata = BytesIO()
     plot.savefig(imgdata, format='svg')
     imgdata.seek(0)  # rewind the data
@@ -75,11 +69,12 @@ def create_pdf(names, plots, tables):
                 <b>A RM test raport</b>''',
                 styleSheet["Heading1"]), t]
 
-    for name, plot, table in itertools.zip_longest(names, plots, Ltables, fillvalue=0):
+    for name, plot, table in zip(names, plots, Ltables):
 
         print(name)
         story.append(Paragraph(name,styleSheet["Heading3"]))
         story.append(prepare_plot(plot))
+        
         for i in prepare_table(table):
             story.append(i)
         story.append(PageBreak())

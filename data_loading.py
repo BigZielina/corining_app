@@ -65,7 +65,6 @@ class DataCore():
                         raise Exception(f"Cell value {expected_nan_cell_value} at position {column_letter}{column_index+2} is a numeric value.The field should not contain any as it corresponds to the impossible case when a conector is matched with itself.")
 
             expected_data_shape = (n_connectors*n_connectors,n_fibers) 
-            print(IL_data.shape,expected_data_shape)
             if IL_data.shape != expected_data_shape:
                 raise Exception(f"Loaded data has shape {IL_data.shape} while the fiber and connector numbering suggest a shape {(n_connectors*n_connectors,n_fibers)}.")
 
@@ -278,7 +277,6 @@ class DataCore():
             print(f"Cannot chose {n_choices} from {self.n_jumpers(IL_data)}.")
 
         all_combinations_tupples = list(it.combinations(range(0,self.n_jumpers(IL_data)),n_choices))
-        print(len(all_combinations_tupples), "N comb")
         if len(all_combinations_tupples) > 1e5:
             print("WARN! Number of combinations is larger than 10 000! This will have a huge impact on performance")
 
@@ -287,7 +285,6 @@ class DataCore():
 
         IL_data_numpy = self.all_IL_values(IL_data)
         for combination in all_combinations_tupples:
-            print(combination)
 
             data = self.filter_n_jumper(IL_data_numpy,self.n_connectors(IL_data),list(combination))
 
@@ -409,13 +406,9 @@ def generate_df(file_path, selected_connector_number):
 
     if selected_connector_number > num_jumpers:
         selected_connector_number = num_jumpers -1
-    print("Jumpers")
     wave_combinations_IL_unfiltered = DC.jumper_combinations_all_wavelengths(selected_connector_number)
     # print(wave_combinations_IL_unfiltered)
-    print("Filtering")
     wave_combinations_IL = DC.map_dict(DC.filter_nan, wave_combinations_IL_unfiltered)
-    for x in wave_combinations_IL:
-        print(wave_combinations_IL[x].shape)
     wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_std = DC.map_dict(lambda arr : np.std(arr,axis=1), wave_combinations_IL)
     wave_combinations_IL_97th = DC.map_dict(lambda arr : np.percentile(arr,97,axis=1), wave_combinations_IL)

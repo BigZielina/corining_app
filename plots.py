@@ -427,7 +427,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     
     plt.grid(True)
     plt.show()    
-    df = pd.DataFrame(all_mean_values,columns=[f"jumper {i}" for i in sorted_indices])
+    df = pd.DataFrame(all_mean_values,columns=[f"jumper {i}" for i in sorted_jumper_numbers])
     return (fig, df)
 
 def jumper_std_plot_sorted(DC, n_choices=1):
@@ -521,7 +521,7 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     plt.grid(True)
     plt.show()
     
-    df = pd.DataFrame(all_std_values,columns=[f"jumper {i}" for i in sorted_indices])
+    df = pd.DataFrame(all_std_values,columns=[f"jumper {i}" for i in sorted_jumper_numbers])
     return (fig, df)
 
 def connector_std_plot_sorted(DC):
@@ -587,8 +587,8 @@ def connector_std_plot_sorted(DC):
         
         # Sortowanie odchyleń standardowych zgodnie z posortowanymi connectorami
         sorted_std_values = std_values_clean[sorted_indices]
-        df = pd.DataFrame([sorted_std_values],columns=[f"jumper {i}" for i in sorted_indices])
-        all_std_values.append(df)
+        
+        all_std_values.append(list(sorted_std_values))
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -615,7 +615,7 @@ def connector_std_plot_sorted(DC):
     plt.tight_layout()  # Poprawienie układu wykresu
     plt.show()
     
-    df = pd.DataFrame([all_std_values], columns=[['std_1510', 'std_1310']])
+    df = pd.DataFrame(all_std_values, columns=[f"jumper {i}" for i in sorted_connector_numbers])
 
     return (fig, df)
 
@@ -684,8 +684,8 @@ def connector_mean_plot_sorted(DC):
         # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
         sorted_mean_values = mean_values_clean[sorted_indices]
 
-        df = pd.DataFrame([sorted_mean_values],columns=[f"jumper {i}" for i in sorted_indices])
-        all_mean_values.append(df)
+        all_mean_values.append(list(sorted_mean_values))
+        
         
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -710,5 +710,5 @@ def connector_mean_plot_sorted(DC):
     plt.tight_layout()
     plt.show()
     
-    df = pd.DataFrame([all_mean_values], columns=['mean_1510', 'mean_1310'])
+    df = pd.DataFrame(all_mean_values, columns=[f"connector {i}" for i in sorted_connector_numbers])
     return (fig, df)

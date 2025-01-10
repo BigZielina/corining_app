@@ -16,7 +16,7 @@ st.set_page_config(layout="wide")
 
 @st.cache_data
 def convert_df_to_csv(df):
-    print(f"to_csv:\n{df}")
+
     return df.to_csv(index=False).encode('utf-8')
 
 def convert_dfs_to_excel(dfs):
@@ -116,9 +116,6 @@ if uploaded_file is not None:
     st.write(dfs[0])
     max_selected_connectors = n_jumpers
     plots, dfs = generate_plots(uploaded_file,selected_connector_number)
-    for j, i in enumerate(dfs):
-        print(j)
-        print(i)
     tab_titles = generate_tab_titles()
 
 
@@ -150,10 +147,10 @@ if uploaded_file is not None:
             )
             buf.close()
 
-            if i + 1 < len(dfs):  # Check if DataFrame exists
-                st.write(dfs[i+1])
+            if i < len(dfs):  # Check if DataFrame exists
+                st.write(dfs[i])
 
-                csv_data = convert_df_to_csv(dfs[i+1])
+                csv_data = convert_df_to_csv(dfs[i])
                 st.download_button(
                     label=f"Download Table {i+1} as CSV",
                     data=csv_data,

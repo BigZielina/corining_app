@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats as stats
 from data_loading import DataCore
-
+import pandas as pd 
 DC = DataCore()
 
 def generate_plots(uploaded_path,selected_connector_number ):
@@ -132,7 +132,8 @@ def plot_weibull_distribution(il_values, wavelength):
     plt.ylabel('Density')
     plt.legend()
     plt.show()
-    return (fig, [shape, scale, mean_il])
+    df = pd.DataFrame([[shape, scale, mean_il]],columns=["weibull shape","weibull scale","mean IL"])
+    return (fig, df)
 
 def generate_weibull_distribution_for_wavelengths(DC):
     """Generate Weibull distribution for each wavelength"""
@@ -214,7 +215,8 @@ def plot1550vs1310(DC):
 
     # Pokaż wykres
     plt.show()
-    return (fig, [rmse, r2, z[0], z[1]])
+    df = pd.DataFrame([[rmse, r2, z[0], z[1]]],columns=["RMSE","R^2","a","b"])
+    return (fig, df)
 
 def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
     """
@@ -243,7 +245,8 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
         # Calculate statistics
         mean = np.mean(data)
         std_dev = np.std(data)
-        stat.append([mean, std_dev])
+        df = pd.DataFrame([[mean, std_dev]],columns=["mean","std_dev"])
+        stat.append(df)
 
         # Plot histogram
         fig = plt.figure(figsize=(8, 5))
@@ -309,7 +312,9 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
         lower_threshold = max(mean - std_dev, 0)  # Ensure lower threshold is non-negative
         upper_threshold = mean + std_dev
 
-        stat.append([mean, std_dev, lower_threshold, upper_threshold])
+
+        df = pd.DataFrame([[mean, std_dev, lower_threshold, upper_threshold]],columns=["mean","std_dev","lower_threshold","upper_threshold"])
+        stat.append(df)
 
         # Plot histogram
         fig = plt.figure(figsize=(8, 5))
@@ -338,6 +343,7 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
         
         plots.append(fig)
         
+    
     return (plots, stat)
 
 def jumper_mean_plot_sorted(DC, n_choices=1):
@@ -395,7 +401,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
         
         # Sortowanie średnich wartości zgodnie z kolejnością jumperów
         sorted_mean_values = np.array(mean_values)[sorted_indices]
-        all_mean_values.append(sorted_mean_values)
+        all_mean_values.append(list(sorted_mean_values))
 
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -421,7 +427,8 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     
     plt.grid(True)
     plt.show()    
-    return (fig, all_mean_values)
+    df = pd.DataFrame(all_mean_values,columns=[f"jumper {i}" for i in sorted_indices])
+    return (fig, df)
 
 def jumper_std_plot_sorted(DC, n_choices=1):
     """
@@ -485,7 +492,9 @@ def jumper_std_plot_sorted(DC, n_choices=1):
         
         # Sortowanie odchyleń standardowych zgodnie z kolejnością jumperów
         sorted_std_values = np.array(std_values)[sorted_indices]
-        all_std_values.append(sorted_std_values)
+
+        all_std_values.append(list(sorted_std_values))
+
 
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
@@ -512,7 +521,8 @@ def jumper_std_plot_sorted(DC, n_choices=1):
     plt.grid(True)
     plt.show()
     
-    return (fig, all_std_values)
+    df = pd.DataFrame(all_std_values,columns=[f"jumper {i}" for i in sorted_indices])
+    return (fig, df)
 
 def connector_std_plot_sorted(DC):
     """
@@ -577,7 +587,9 @@ def connector_std_plot_sorted(DC):
         
         # Sortowanie odchyleń standardowych zgodnie z posortowanymi connectorami
         sorted_std_values = std_values_clean[sorted_indices]
-        all_std_values.append(sorted_std_values)
+        df = pd.DataFrame([sorted_std_values],columns=[f"jumper {i}" for i in sorted_indices])
+        all_std_values.append(df)
+        
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
@@ -603,7 +615,9 @@ def connector_std_plot_sorted(DC):
     plt.tight_layout()  # Poprawienie układu wykresu
     plt.show()
     
-    return (fig, all_std_values)
+    df = pd.DataFrame([all_std_values], columns=[['std_1510', 'std_1310']])
+
+    return (fig, df)
 
 
 def connector_mean_plot_sorted(DC):
@@ -669,8 +683,10 @@ def connector_mean_plot_sorted(DC):
         
         # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
         sorted_mean_values = mean_values_clean[sorted_indices]
-        all_mean_values.append(sorted_mean_values)
 
+        df = pd.DataFrame([sorted_mean_values],columns=[f"jumper {i}" for i in sorted_indices])
+        all_mean_values.append(df)
+        
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
@@ -694,4 +710,5 @@ def connector_mean_plot_sorted(DC):
     plt.tight_layout()
     plt.show()
     
-    return (fig, all_mean_values)
+    df = pd.DataFrame([all_mean_values], columns=['mean_1510', 'mean_1310'])
+    return (fig, df)

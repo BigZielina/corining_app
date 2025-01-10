@@ -129,8 +129,10 @@ class DataCore():
             column_letter = xlsxwriter.utility.xl_col_to_name(n_fibers+1)
 
             worksheet.set_column("A:B",22)
-            worksheet.merge_range(f"C1:{column_letter}1", "Fiber Number",merge_format)
-                
+            if column_letter != "C":
+                worksheet.merge_range(f"C1:{column_letter}1", "Fiber Number",merge_format)
+            else:
+                worksheet.write(0,2,"Fiber Number",merge_format)
             for k in range(n_connectors):
                 if k%2 == 0:
                     continue

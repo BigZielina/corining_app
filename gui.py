@@ -101,7 +101,7 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 
 if uploaded_file is not None:
     
-    dfs,n_jumpers = generate_df(uploaded_file,10)
+    dfs1,n_jumpers = generate_df(uploaded_file,10)
 
     with st.expander("RM number of jumper choices"):
         st.write("Provide the desired number of jumpers to be chosen in each random mating")
@@ -113,12 +113,15 @@ if uploaded_file is not None:
             step=1
         )
     st.subheader("Overview Table")
-    st.write(dfs[0])
+    st.write(dfs1[0])
     max_selected_connectors = n_jumpers
     plots, dfs = generate_plots(uploaded_file,selected_connector_number)
     tab_titles = generate_tab_titles()
 
-
+    dfs = list(dfs)
+    dfs.insert(0, dfs1[0])
+    dfs = tuple(dfs)
+    
     all_plots = save_plots_to_bytes(plots)
     all_data_zip = create_zip_file(dfs, all_plots)
     st.download_button(
@@ -147,10 +150,10 @@ if uploaded_file is not None:
             )
             buf.close()
 
-            if i < len(dfs):  # Check if DataFrame exists
-                st.write(dfs[i])
+            if i+1 < len(dfs)+1:  # Check if DataFrame exists
+                st.write(dfs[i+1])
 
-                csv_data = convert_df_to_csv(dfs[i])
+                csv_data = convert_df_to_csv(dfs[i+1])
                 st.download_button(
                     label=f"Download Table {i+1} as CSV",
                     data=csv_data,

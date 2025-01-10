@@ -9,4 +9,3 @@ openpyxl
 reportlab
 svglib
 regex
-itertools

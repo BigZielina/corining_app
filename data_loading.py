@@ -395,13 +395,14 @@ def generate_df(file_path, selected_connector_number):
     print(f"Number of jumper {DC.n_jumpers(test_sheet)}")
     print(f"Number of fiber {DC.n_fibers(test_sheet)}")
 
+    
     data1 = {
-    'Type': ['Number of Connectors', 'Number of Jumpers', 'Number of Fibers'],
-    'Count': [num_connectors, num_jumpers, num_fibers]
+        "Number of Connectors" : [num_connectors],
+        "Number of Jumpers" : [num_jumpers],
+        "Number of Fibers" : [num_fibers]
     }   
     
     df1 = pd.DataFrame(data1)
-    df1
     #-----------------------------------------------------------------
 
     if selected_connector_number > num_jumpers:

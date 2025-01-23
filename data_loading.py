@@ -20,13 +20,16 @@ class DataCore():
 
 
     """
-    def load_excel(self,path : str) -> None:
+    def load_excel(self,path : str) -> list[str]:
         """Load the data from and excel file
 
         Failes if there is no excel file at the given path or
-        if openpyxl is not installed"""
-        #TODO remember that openpyxl must be installed for this to run
-        #TODO verify loaded files
+        if openpyxl is not installed
+
+        Returns a list of string warnings if there is incorrect data in the excel file"""
+
+        warnings = []
+
         excel_file = pd.ExcelFile(path)
         self.excel_data = {}
         for sheet_name in excel_file.sheet_names:
@@ -55,20 +58,34 @@ class DataCore():
             n_fibers = self.n_fibers(excel_file_df)
             IL_data = self.all_IL_values(excel_file_df)
             expected_nan_rows_indecies = [n_connectors * i + i for i in range(n_connectors)]
+            expected_nan_rows_indecies += [n_connectors * i + i + (1 if i%2==0 else -1) for i in range(n_connectors)]
 
+            wrong_cell_values = []
+            wrong_cells = []
 
             for row_index in expected_nan_rows_indecies:
+
                 for column_index in range(n_fibers):
+
                     expected_nan_cell_value = IL_data[row_index,column_index]
+
                     if not np.isnan(float(expected_nan_cell_value)):
+
+                        IL_data[row_index,column_index] = 'NaN'
                         column_letter = xlsxwriter.utility.xl_col_to_name(column_index+2)
-                        raise Exception(f"Cell value {expected_nan_cell_value} at position {column_letter}{column_index+2} is a numeric value.The field should not contain any as it corresponds to the impossible case when a conector is matched with itself.")
+                        wrong_cell_values.append(expected_nan_cell_value)
+                        wrong_cell_values.append(f"{column_letter}{column_index+2}")
+
+            warnings.append(f"Cell value(s) {wrong_cell_values} at position(s) {wrong_cells} is(are) a numeric value.The field should not contain any as it corresponds to the impossible case when a conector is matched with itself.")
+
 
             expected_data_shape = (n_connectors*n_connectors,n_fibers)
             if IL_data.shape != expected_data_shape:
-                raise Exception(f"Loaded data has shape {IL_data.shape} while the fiber and connector numbering suggest a shape {(n_connectors*n_connectors,n_fibers)}.")
+                warnings.append(f"Loaded data has shape {IL_data.shape} while the fiber and connector numbering suggest a shape {(n_connectors*n_connectors,n_fibers)}.")
 
             self.excel_data[wavelength] = excel_file_df
+
+            return warnings
 
 
 

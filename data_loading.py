@@ -85,7 +85,7 @@ class DataCore():
 
             self.excel_data[wavelength] = excel_file_df
 
-            return warnings
+        return warnings
 
 
 

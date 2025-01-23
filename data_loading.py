@@ -378,7 +378,7 @@ class DataCore():
         float_cast = A.astype(float)
         return float_cast[~np.isnan(float_cast)]
 
-def generate_df(file_path, selected_connector_number):
+def generate_df(file_path):
 
     #example
     DC = DataCore()
@@ -407,121 +407,5 @@ def generate_df(file_path, selected_connector_number):
     }
 
     df1 = pd.DataFrame(data1)
-    #-----------------------------------------------------------------
 
-    if selected_connector_number > num_jumpers:
-        selected_connector_number = num_jumpers -1
-    wave_combinations_IL_unfiltered = DC.jumper_combinations_all_wavelengths(selected_connector_number)
-    # print(wave_combinations_IL_unfiltered)
-    wave_combinations_IL = DC.map_dict(DC.filter_nan, wave_combinations_IL_unfiltered)
-    wave_combinations_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=1), wave_combinations_IL)
-    wave_combinations_IL_std = DC.map_dict(lambda arr : np.std(arr,axis=1), wave_combinations_IL)
-    wave_combinations_IL_97th = DC.map_dict(lambda arr : np.percentile(arr,97,axis=1), wave_combinations_IL)
-
-
-    # print("mean,std and 97th percentile for the first 10 combinations of connectors\
-    #     for all wavelengths")
-    # print(wave_combinations_IL_mean[1550][:10])
-    # print(wave_combinations_IL_std[1550][:10])
-    # print(wave_combinations_IL_97th[1550][:10])
-
-
-    # Not always present
-
-    data2 = {
-    'Wavelength': list(wave_combinations_IL.keys()),
-    'Mean': list(wave_combinations_IL_mean.values()),
-    'Std': list(wave_combinations_IL_std.values()),
-    '97th Percentile': list(wave_combinations_IL_97th.values())
-    }
-
-
-
-    df2 = pd.DataFrame(data2)
-
-    #-----------------------------------------------------------------
-
-    wave_IL_unfiltered = DC.IL_wavelengths()
-    wave_IL = DC.map_dict(DC.filter_nan, wave_IL_unfiltered)
-
-    wave_IL_mean = DC.map_dict(lambda arr : np.mean(arr,axis=0), wave_IL)
-    wave_IL_std = DC.map_dict(lambda arr : np.std(arr,axis=0), wave_IL)
-    wave_IL_97th = DC.map_dict(lambda arr : np.percentile(arr,97,axis=0), wave_IL)
-
-    # print("mean,std and 97th percentile for all wavelengths")
-    # print("\n",wave_IL_mean,wave_IL_std,wave_IL_97th)
-
-    data3 = {
-    'Wavelength': list(wave_IL_mean.keys()),
-    'Mean': list(wave_IL_mean.values()),
-    'Std': list(wave_IL_std.values()),
-    '97th Percentile': list(wave_IL_97th.values())
-    }
-
-    df3 = pd.DataFrame(data3)
-
-    #-----------------------------------------------------------------
-
-    reference_connectors_IL_unfiltered = DC.IL_reference_connectors()
-    reference_connectors_IL = list(map(DC.filter_nan,reference_connectors_IL_unfiltered))
-
-    # print("mean,std and 97th percentile for first 10 reference connectors")
-    # print(list(map(np.mean,reference_connectors_IL))[:10])
-    # print(list(map(np.std,reference_connectors_IL))[:10])
-    # print(list(map(lambda x : np.percentile(x,97),reference_connectors_IL))[:10])
-
-    dut_connectors_IL_unfiltered = DC.IL_dut_connectors()
-    dut_connectors_IL = list(map(DC.filter_nan,dut_connectors_IL_unfiltered))
-
-
-    data4 = {
-    'Wavelength': list(wave_IL_mean.keys()),
-    'Mean': list(wave_IL_mean.values()),
-    'Std': list(wave_IL_std.values()),
-    '97th Percentile': list(wave_IL_97th.values())
-    }
-
-    df4 = pd.DataFrame(data4)
-
-    #-----------------------------------------------------------------
-
-    # print("mean,std and 97th percentile for first 10 dut connectors")
-    # print(list(map(np.mean,dut_connectors_IL))[:10])
-    # print(list(map(np.std,dut_connectors_IL))[:10])
-    # print(list(map(lambda x : np.percentile(x,97),dut_connectors_IL))[:10])
-
-    mean_values_dut = list(map(np.mean, dut_connectors_IL))
-    std_values_dut = list(map(np.std, dut_connectors_IL))
-    percentile_97th_values_dut = list(map(lambda x: np.percentile(x, 97), dut_connectors_IL))
-
-
-    data5 = {
-    'Mean': mean_values_dut,
-    'Std': std_values_dut,
-    '97th Percentile': percentile_97th_values_dut
-    }
-
-    df5 = pd.DataFrame(data5)
-
-    #-----------------------------------------------------------------
-    fibers_IL_unfiltered = DC.IL_fibers()
-    fibers_IL = list(map(DC.filter_nan,fibers_IL_unfiltered))
-
-    # print("mean,std and 97th percentile for all fibers")
-    # print(list(map(np.mean,fibers_IL)))
-    # print(list(map(np.std,fibers_IL)))
-    # print(list(map(lambda x : np.percentile(x,97),fibers_IL)))
-
-    mean_values_fibers = list(map(np.mean, fibers_IL))
-    std_values_fibers = list(map(np.std, fibers_IL))
-    percentile_97th_values_fibers = list(map(lambda x: np.percentile(x, 97), fibers_IL))
-
-    data6 = {
-    'Mean': mean_values_fibers,
-    'Std': std_values_fibers,
-    '97th Percentile': percentile_97th_values_fibers
-    }
-
-    df6 = pd.DataFrame(data6)
-
-    return (df1, df2, df3, df4, df5, df6) , num_jumpers
+    return (df1) , num_jumpers

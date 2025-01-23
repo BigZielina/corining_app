@@ -16,8 +16,6 @@ dependencies:
   - setuptools=75.1.0
   - sqlite=3.45.3
   - tk=8.6.14
-  - vc=14.40
-  - vs2015_runtime=14.42.34433
   - wheel=0.44.0
   - xz=5.4.6
   - zlib=1.2.13
@@ -64,10 +62,12 @@ dependencies:
       - referencing==0.35.1
       - regex==2024.11.6
       - requests==2.32.3
+      - reportlab==4.2.5
       - rich==13.9.4
       - rpds-py==0.22.3
       - scipy==1.15.1
       - six==1.17.0
+      - svglib==1.5.1
       - smmap==5.0.2
       - streamlit==1.41.1
       - tenacity==9.0.0

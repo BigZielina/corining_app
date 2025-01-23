@@ -41,14 +41,14 @@ class DataCore():
 
                     raise Exception(f"sheet name : {sheet_name} does not match the expected format. Outside the 'instruction' and 'example'\
                            all excel sheets should have name in the same format as '1750nm' or '1660.1nm'")
-                    
-                
+
+
                 continue
-            
+
 
             wavelength = float(matches[0])
-            
-            excel_file_df = excel_file.parse(sheet_name,header=None)
+
+            excel_file_df  = excel_file.parse(sheet_name,header=None)
 
 
             n_connectors = self.n_connectors(excel_file_df)
@@ -59,22 +59,22 @@ class DataCore():
 
             for row_index in expected_nan_rows_indecies:
                 for column_index in range(n_fibers):
-                    expected_nan_cell_value = IL_data[row_index,column_index] 
+                    expected_nan_cell_value = IL_data[row_index,column_index]
                     if not np.isnan(float(expected_nan_cell_value)):
                         column_letter = xlsxwriter.utility.xl_col_to_name(column_index+2)
                         raise Exception(f"Cell value {expected_nan_cell_value} at position {column_letter}{column_index+2} is a numeric value.The field should not contain any as it corresponds to the impossible case when a conector is matched with itself.")
 
-            expected_data_shape = (n_connectors*n_connectors,n_fibers) 
+            expected_data_shape = (n_connectors*n_connectors,n_fibers)
             if IL_data.shape != expected_data_shape:
                 raise Exception(f"Loaded data has shape {IL_data.shape} while the fiber and connector numbering suggest a shape {(n_connectors*n_connectors,n_fibers)}.")
 
             self.excel_data[wavelength] = excel_file_df
-                
 
 
 
 
-    def create_excel_template(self,n_connectors,path="template.xlsx",n_wavelengths=1,n_fibers=1):
+
+    def create_excel_template(self,n_connectors,path="template.xlsx",wavelengths = [1310, 1550],n_extra_wavelengths=0,n_fibers=1):
 
 
         #add instruction and exmaple pages to the excel file
@@ -95,10 +95,14 @@ class DataCore():
         example_sheet[2:n_connectors*n_connectors+2,2:n_fibers+2] = np.round(np.random.rand(n_connectors*n_connectors,n_fibers),3)
         excel_df = pd.DataFrame(Sheet)
         excel_df_example = pd.DataFrame(example_sheet)
-        
+
 
         writer = pd.ExcelWriter(path,engine="xlsxwriter")
-        for i in range(n_wavelengths):
+
+        for wavelength in wavelengths:
+            excel_df.to_excel(writer,sheet_name=f"{wavelength}nm",index=False,header=False)
+
+        for i in range(n_extra_wavelengths):
             excel_df.to_excel(writer,sheet_name=f"wavelength_{i}",index=False,header=False)
 
         excel_df_example.to_excel(writer,sheet_name=f"example",index=False,header=False)
@@ -115,7 +119,7 @@ class DataCore():
                 "valign": "vcenter",
             }
         )
-    
+
         nan_format = workbook.add_format({
             "bg_color" : "red"
         })
@@ -124,7 +128,7 @@ class DataCore():
         })
 
         for worksheet in workbook.worksheets():
-            
+
             column_letter = xlsxwriter.utility.xl_col_to_name(n_fibers+1)
 
             worksheet.set_column("A:B",22)
@@ -139,10 +143,10 @@ class DataCore():
 
             for i in range(n_connectors):
                 worksheet.merge_range(f"A{3+i*n_connectors}:A{2+(i+1)*n_connectors}", f"{i+1}",merge_format)
-            
+
                 for j in range(n_fibers):
                     worksheet.write(n_connectors*i+i+2,j+2,'NaN',nan_format)
-                
+
 
             if worksheet.name == "instruction":
                 column_letter_start = xlsxwriter.utility.xl_col_to_name(n_fibers+5)
@@ -167,7 +171,7 @@ class DataCore():
                 worksheet.merge_range(f"{column_letter_start}{21}:{column_letter_end}{25}", instruction_3,merge_format)
 
 
-        
+
 
         writer.close()
 
@@ -194,7 +198,7 @@ class DataCore():
         connector_number_index = 2
         previous_cell = self.all_cells(data)[connector_number_index,1]
         while True:
-     
+
             if self.all_cells(data)[connector_number_index+1,1] != previous_cell + 1:
                 break
             previous_cell = self.all_cells(data)[connector_number_index + 1,1]
@@ -319,7 +323,7 @@ class DataCore():
 
     def IL_reference_connectors(self) ->  np.ndarray:
         """Create a list containg all IL values for each of the reference connectors
-        
+
         Returns an array of shape n_connectors x n_wavelengths*n_connectors x n_fibers """
         wave_IL = self.excel_data
         connector_data = []
@@ -327,18 +331,18 @@ class DataCore():
             data = wave_IL[wave]
             connector = np.split(self.all_IL_values(data),self.n_connectors(data),axis=0)
             connector_data.append(np.array(connector))
-            
+
         return np.hstack(connector_data)
-    
+
     def split_array(self,arr, k):
-        split_arrays = [] 
-        for i in range(k): 
-            split_arrays.append(arr[i::k]) 
+        split_arrays = []
+        for i in range(k):
+            split_arrays.append(arr[i::k])
         return split_arrays
-    
+
     def IL_dut_connectors(self) -> np.ndarray:
         """Create a list containg all IL values for each of the DUT connectors
-        
+
         Returns an array of shape n_connectors x n_wavelengths*n_connectors x n_fibers.
         Should fullfill the same job as DataCore.IL_reference_connectors"""
         wave_IL = self.excel_data
@@ -349,10 +353,10 @@ class DataCore():
             connector_data.append(np.array(connector))
 
         return np.hstack(connector_data)
-    
+
     def IL_fibers(self) -> np.ndarray:
         """Create a list containg all IL values for each of fiber
-        
+
         Returns an array of shape n_fibers x n_wavelengths*n_connectors*n_connectors x 1.
         Could be flattened but it does not impact aggregate functions like mean, std, etc."""
         wave_IL = self.excel_data
@@ -395,13 +399,13 @@ def generate_df(file_path, selected_connector_number):
     print(f"Number of jumper {DC.n_jumpers(test_sheet)}")
     print(f"Number of fiber {DC.n_fibers(test_sheet)}")
 
-    
+
     data1 = {
         "Number of Connectors" : [num_connectors],
         "Number of Jumpers" : [num_jumpers],
         "Number of Fibers" : [num_fibers]
-    }   
-    
+    }
+
     df1 = pd.DataFrame(data1)
     #-----------------------------------------------------------------
 
@@ -431,7 +435,7 @@ def generate_df(file_path, selected_connector_number):
     '97th Percentile': list(wave_combinations_IL_97th.values())
     }
 
-    
+
 
     df2 = pd.DataFrame(data2)
 
@@ -468,7 +472,7 @@ def generate_df(file_path, selected_connector_number):
 
     dut_connectors_IL_unfiltered = DC.IL_dut_connectors()
     dut_connectors_IL = list(map(DC.filter_nan,dut_connectors_IL_unfiltered))
-    
+
 
     data4 = {
     'Wavelength': list(wave_IL_mean.keys()),

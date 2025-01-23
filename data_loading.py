@@ -144,9 +144,16 @@ class DataCore():
             for i in range(n_connectors):
                 worksheet.merge_range(f"A{3+i*n_connectors}:A{2+(i+1)*n_connectors}", f"{i+1}",merge_format)
 
+
+                if i%2 != 0:
+                    continue
                 for j in range(n_fibers):
                     worksheet.write(n_connectors*i+i+2,j+2,'NaN',nan_format)
+                    worksheet.write(n_connectors*i+i+3,j+2,'NaN',nan_format)
 
+                    i = i + 1
+                    worksheet.write(n_connectors*i+i+2,j+2,'NaN',nan_format)
+                    worksheet.write(n_connectors*i+i+3,j+2,'NaN',nan_format)
 
             if worksheet.name == "instruction":
                 column_letter_start = xlsxwriter.utility.xl_col_to_name(n_fibers+5)

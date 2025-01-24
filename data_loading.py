@@ -84,11 +84,11 @@ class DataCore():
                         wrong_cell_values.append(expected_nan_cell_value)
                         wrong_cell_values.append(f"{column_letter}{column_index+2}")
 
-            if self.language == 'english':
+            if self.language == 'english' and len(wrong_cell_values) > 0:
                 warnings.append(f"Cell value(s) {wrong_cell_values} at position(s) {wrong_cells} in sheet {sheet_name} is(are) a numeric value.\
                     The field should not contain any as it corresponds to the impossible case when a conector is matched against a connector on the same jumper.")
 
-            elif self.language == 'polish':
+            elif self.language == 'polish'and len(wrong_cell_values) > 0:
                 warnings.append(f"Wartości komórek(komórki) {wrong_cell_values} w pozycji(ach) {wrong_cells} w arkuszu {sheet_name} \
                     jest(są) wartościami numerycznymi. Te komórki nie powinny zawierać żadnej wartości, ponieważ odnoszą się do niemożliwej\
                     sytuacji gdzie connector jest testowany z connectorem na tym samym kablu.")

@@ -213,11 +213,10 @@ class DataCore():
                     worksheet.write(n_connectors*i+i+2,j+2,'NaN',nan_format)
                     worksheet.write(n_connectors*i+i+3,j+2,'NaN',nan_format)
 
-                    i = i + 1
-                    worksheet.write(n_connectors*i+i+2,j+2,'NaN',nan_format)
-                    worksheet.write(n_connectors*i+i+3,j+2,'NaN',nan_format)
+                    worksheet.write(n_connectors*(i+1)+(i+1)+1,j+2,'NaN',nan_format)
+                    worksheet.write(n_connectors*(i+1)+(i+1)+2,j+2,'NaN',nan_format)
 
-            if worksheet.name == "instruction" and worksheet.name == "przykład":
+            if worksheet.name == "instruction" or worksheet.name == "przykład":
                 column_letter_start = xlsxwriter.utility.xl_col_to_name(n_fibers+5)
                 column_letter_end = xlsxwriter.utility.xl_col_to_name(n_fibers+12)
 
@@ -437,6 +436,19 @@ class DataCore():
             connector_data.append(np.array(connector))
 
         return np.hstack(connector_data)
+
+    def IL_jumpers_wavelengths(self) -> np.ndarray:
+        """Create a list containg all IL values for each of the jumpers for each wavelength
+
+        Returns an dict with arrays of shape 2*n_connectors x n_fibers."""
+        wave_IL = self.excel_data
+        jumper_data = {}
+        for wave in wave_IL:
+            data = wave_IL[wave]
+            jumper = np.split(self.all_IL_values(data),self.n_jumpers(data))
+            jumper_data[wave] = jumper
+
+        return jumper_data
 
     def IL_fibers(self) -> np.ndarray:
         """Create a list containg all IL values for each of fiber

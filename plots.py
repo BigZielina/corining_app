@@ -359,6 +359,8 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     """
     
     # Ładowanie danych
+    # To nigdy nie miało sensu i działało (błędnie) przez błąd w definicji danych
+    # zmienić na DataCore.IL_jumpers_wavelengths
     wavelength_IL_combinations = DC.jumper_combinations_all_wavelengths(n_choices)
     wavelengths = list(wavelength_IL_combinations.keys())
     

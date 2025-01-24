@@ -66,23 +66,35 @@ st.title("Data Viewer")
 
 with st.expander("Generate Excel Template"):
     st.write("Set the parameters below to create your Excel template.")
-    
-    n_connectors = st.number_input("Number of Connectors", min_value=1, max_value=100, value=5, step=1)
+
+
+    #connectors should actually be an even number
+    n_connectors = st.number_input("Number of Connectors", min_value=2, max_value=100, value=10, step=2)
     n_wavelengths = st.number_input("Number of Wavelengths", min_value=1, max_value=10, value=1, step=1)
     n_fibers = st.number_input("Number of Fibers", min_value=1, max_value=50, value=1, step=1)
     file_name = st.text_input("File Name", value="template.xlsx")
-    
+
     buffer = BytesIO()
 
-    data_core_instance = DataCore()
+    #TODO : język jako parametr w GUI żeby kontrolować język instrukcji, błędów i najlepiej całego UI
+    app_language = "english"
+    data_core_instance = DataCore(language = app_language)
+
+    # TODO : trzeba zmienić żeby gui dawało liste długości fal które mają być w pliku
+    # i tak żeby wszystkie te bazowe ([1310, 1550,...]) były do zaznaczenia jakoś tak
+    # [] 1310nm
+    # [] 1550mn
+    # no i potem pole na potencjalne dodatkowe wartośći
+    #
+    warnings = wavelengths = [1310, 1550]
     data_core_instance.create_excel_template(
         n_connectors=n_connectors,
-        path=buffer,  
-        n_wavelengths=n_wavelengths,
+        path=buffer,
+        wavelengths=wavelengths,
         n_fibers=n_fibers
     )
 
-    buffer.seek(0)  
+    buffer.seek(0)
     st.download_button(
         label="Generate and Download Excel Template",
         data=buffer,
@@ -100,8 +112,11 @@ with st.expander("Generate Excel Template"):
 uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 
 if uploaded_file is not None:
-    
-    dfs1,n_jumpers = generate_df(uploaded_file,10)
+
+    #TODO teraz load_excel zwraca liste ostrzeżeń jako stringów które trzeba jakoś ludzią pokazać
+    warnings = data_core_instance.load_excel(uploaded_file)
+
+    dfs1,n_jumpers = generate_df(uploaded_file)
 
     with st.expander("RM number of jumper choices"):
         st.write("Provide the desired number of jumpers to be chosen in each random mating")
@@ -121,7 +136,7 @@ if uploaded_file is not None:
     dfs = list(dfs)
     dfs.insert(0, dfs1[0])
     dfs = tuple(dfs)
-    
+
     all_plots = save_plots_to_bytes(plots)
     all_data_zip = create_zip_file(dfs, all_plots)
     st.download_button(
@@ -136,9 +151,9 @@ if uploaded_file is not None:
     for i, tab in enumerate(tabs):
         with tab:
             st.subheader(f"{tab_titles[i]}")
-            
+
             st.pyplot(plots[i])
-            
+
             buf = BytesIO()
             plots[i].savefig(buf, format="png")
             buf.seek(0)

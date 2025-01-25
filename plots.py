@@ -28,6 +28,7 @@ def generate_plots(uploaded_path,selected_connector_number):
     # Jumper mean
     (fig, df) = jumper_mean_plot_sorted(DC)
     figs.append(fig)
+    dfs.append(df)
     
     # Jumper std
     (fig, df) = jumper_std_plot_sorted(DC)
@@ -78,41 +79,6 @@ def generate_tab_titles():
         "Connectors Std"]
 
     return titles
-
-def connector_ilstd_plot(wavelengths, data_core = DC):
-
-    connector_data = data_core.IL_reference_connectors()
-    num_connectors = connector_data.shape[0]  # Number of connectors
-    connector_std = {wavelength: [] for wavelength in wavelengths}
-
-    for wavelength in wavelengths:
-
-        for connector_index in range(num_connectors):
-            il_values = connector_data[connector_index, :]
-            il_values_filtered = data_core.filter_nan(il_values)
-            connector_std[wavelength].append(il_values_filtered.std())
-
-
-    connector_order = range(1, num_connectors + 1)
-
-
-    plt.figure(figsize=(10, 6))
-    for wavelength in wavelengths:
-        plt.plot(connector_order, connector_std[wavelength], marker='o', linestyle='-', label=f'{wavelength} nm')
-
-
-    plt.xticks(ticks=range(1, num_connectors + 1), labels=connector_order)
-
-
-    plt.xlabel('Connector Ranking')
-    plt.ylabel('IL Std')
-    plt.grid(axis='y')
-    plt.legend()
-    plt.title('Connector Ranking vs IL Std')
-
-    plt.show()
-
-
 
 def plot_weibull_distribution(il_values, wavelength):
     """Plot histogram and Weibull fit for given IL values"""
@@ -175,8 +141,16 @@ def plot1550vs1310(DC):
         Obiekt klasy DataCore zawierający dane.
     """
     
+    wavelength_ex = DC.wavelengths()[0]
+
+    test_sheet = DC.IL_wavelength(wavelength_ex)
+
+    #-----------------------------------------------------------------
+
+    num_connectors = DC.n_connectors(test_sheet)    # number of connectors (prawidłowy)
+    
     # Zaczytanie danych tłumienności dla wszystkich długości fal (IL dla konektorów)
-    IL_data = DC.IL_reference_connectors()
+    IL_data = DC.IL_dut_connectors()
 
     # Długości fal (muszą być dostępne w danych)
     wavelengths = DC.wavelengths()
@@ -184,29 +158,63 @@ def plot1550vs1310(DC):
     if 1310 not in wavelengths or 1550 not in wavelengths:
         return None
         raise ValueError("Długości fal 1310 nm lub 1550 nm nie znajdują się w dostępnych danych!")
-
+    
+    x = np.array([])
+    y = np.array([])
+    
     # Pobierz dane dla 1310 nm i 1550 nm
     idx_1310 = wavelengths.index(1310)
     idx_1550 = wavelengths.index(1550)
+    
+    for connector in range(0, num_connectors):
+        start = 0
+        end = num_connectors
+        
+        # Usuwanie NaN przed obliczaniem średniej
+        connector_data_cleaned = [
+            np.array(connector_data, dtype=float)[~np.isnan(np.array(connector_data, dtype=float))] 
+            for connector_data in IL_data[connector]
+        ]
+        
+        # Obliczanie wartości średnich dla connectora przy wybranej długości fali
+        for wavelength in range(0, len(wavelengths)):
+            connector_data_wavelength = connector_data_cleaned[start:end]
+            
+            # Dodanie wyniku do odpowiedniej grupy długości fal
+            #grouped_by_wavelength[wavelength].append(connector_data_wavelength)
+            
+            if wavelength == idx_1310:
+                x = np.append(x, connector_data_wavelength)
+            elif wavelength == idx_1550:
+                y = np.append(y, connector_data_wavelength)
+            
+            start += num_connectors
+            end += num_connectors
+    
+    # Przekształcenie danych
+    x_cleaned = []
+    y_cleaned = []
 
-    x = np.array(IL_data[idx_1310], dtype=float)  # Dane dla 1310 nm
-    y = np.array(IL_data[idx_1550], dtype=float)  # Dane dla 1550 nm
+    # Usunięcie pustych elementów i ich indeksów
+    for x, y in zip(x, y):
+        if len(x) > 0 and len(y) > 0:  # Sprawdzenie, czy x i y nie są puste
+            x_cleaned.append(np.mean(x))  # Użycie średniej dla reprezentacji x
+            y_cleaned.append(np.mean(y))  # Użycie średniej dla reprezentacji y
 
-    # Usuń wartości NaN z obu zestawów danych
-    mask = ~np.isnan(x) & ~np.isnan(y)
-    x_clean = x[mask]
-    y_clean = y[mask]
+    # Konwersja do tablic numpy
+    x_clean = np.array(x_cleaned)
+    y_clean = np.array(y_cleaned)
 
-    # Stwórz wykres scatter
-    fig = plt.figure(figsize=(8, 6))
-    plt.scatter(x_clean, y_clean, color='blue', label='Data points', s=10)
-
-    # Dopasuj linię trendu i narysuj
+    # Tworzenie wykresu
+    fig = plt.figure(figsize=(10, 6))
+    plt.scatter(x_cleaned, y_cleaned, color='blue', label='Data points')
+    
+    # # Dopasuj linię trendu i narysuj
     z = np.polyfit(x_clean, y_clean, 1)  # Dopasowanie liniowe (stopień 1)
     p = np.poly1d(z)
     plt.plot(x_clean, p(x_clean), color='red', label=f'Trendline: y = {z[0]:.2f}x + {z[1]:.2f}')
 
-    # Oblicz RMSE i R^2
+    # # Oblicz RMSE i R^2
     y_pred = p(x_clean)  # Przewidywane wartości z linii trendu
     rmse = np.sqrt(np.mean((y_clean - y_pred) ** 2))
     r2 = 1 - (np.sum((y_clean - y_pred) ** 2) / np.sum((y_clean - np.mean(y_clean)) ** 2))
@@ -215,7 +223,7 @@ def plot1550vs1310(DC):
     il_1550 = x_clean * 0.78
     plt.plot(x_clean, il_1550, color='green', linestyle='--', label='IL1550 = IL1310 × 0.78')
     
-    # Oś symetryczna; Symmetric axis
+    # # Oś symetryczna; Symmetric axis
     plt.axis('equal')
     axis_min = min(np.min(x_clean)-.02, np.min(y_clean)-.02)
     axis_max = max(np.max(x_clean)+.02, np.max(y_clean)+.02)
@@ -233,6 +241,7 @@ def plot1550vs1310(DC):
     # Pokaż wykres
     plt.show()
     df = pd.DataFrame([[rmse, r2, z[0], z[1]]],columns=["RMSE","R^2","a","b"])
+    
     return (fig, df)
 
 def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):

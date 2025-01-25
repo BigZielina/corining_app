@@ -5,36 +5,51 @@ from data_loading import DataCore
 import pandas as pd 
 DC = DataCore()
 
-def generate_plots(uploaded_path,selected_connector_number ):
+def generate_plots(uploaded_path,selected_connector_number):
     # do tego tupla z wykresu 
     DC.load_excel(uploaded_path)
     figs = []
     dfs = []
+    
+    # Weibull distribution for each wavelength
     (fig, df) = generate_weibull_distribution_for_wavelengths(DC)    # 3 wykresy
     figs.extend(fig)
     dfs.extend(df)
+    
+    # 1550 vs 1310
     plot_vs = plot1550vs1310(DC)    # 1 wykres
-    (fig, df) = plot1550vs1310(DC)
     if plot_vs != None:
+        (fig, df) = plot1550vs1310(DC)
         figs.append(fig)
         dfs.append(df)
+    else:
+        pass
     
-    (fig, df) = jumper_mean_plot_sorted(DC, n_choices=1)
+    # Jumper mean
+    (fig, df) = jumper_mean_plot_sorted(DC)
+    figs.append(fig)
+    
+    # Jumper std
+    (fig, df) = jumper_std_plot_sorted(DC)
     figs.append(fig)
     dfs.append(df)
-    (fig, df) = jumper_std_plot_sorted(DC, n_choices=1)
-    figs.append(fig)
-    dfs.append(df)
+    
+    # RM286 IL mean
     (fig, df) = rm286_ilmean_plot(DC, selected_connector_number)
     figs.extend(fig)
     dfs.extend(df)
+    
+    # RM286 IL 97th
     (fig, df) = rm286_il97th_plot_filtered(DC,selected_connector_number)
     figs.extend(fig)
     dfs.extend(df)
-
+    
+    # Connector mean
     (fig, df) = connector_mean_plot_sorted(DC)
     figs.append(fig)
     dfs.append(df)
+    
+    # Connector std
     (fig, df) = connector_std_plot_sorted(DC)
     figs.append(fig)
     dfs.append(df)
@@ -167,7 +182,7 @@ def plot1550vs1310(DC):
     wavelengths = DC.wavelengths()
 
     if 1310 not in wavelengths or 1550 not in wavelengths:
-        return
+        return None
         raise ValueError("Długości fal 1310 nm lub 1550 nm nie znajdują się w dostępnych danych!")
 
     # Pobierz dane dla 1310 nm i 1550 nm
@@ -199,12 +214,14 @@ def plot1550vs1310(DC):
     # Narysuj funkcję IL1550 = IL1310 * 0.78
     il_1550 = x_clean * 0.78
     plt.plot(x_clean, il_1550, color='green', linestyle='--', label='IL1550 = IL1310 × 0.78')
-
-    # Oś symetryczna
+    
+    # Oś symetryczna; Symmetric axis
+    plt.axis('equal')
     axis_min = min(np.min(x_clean)-.02, np.min(y_clean)-.02)
     axis_max = max(np.max(x_clean)+.02, np.max(y_clean)+.02)
     plt.xlim(axis_min, axis_max)
     plt.ylim(axis_min, axis_max)
+    plt.gca().set_aspect('equal', adjustable='box')
 
     # Dodaj etykiety, legendę i tytuł
     plt.xlabel('1310')
@@ -346,7 +363,7 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
     
     return (plots, stat)
 
-def jumper_mean_plot_sorted(DC, n_choices=1):
+def jumper_mean_plot_sorted(DC):
     """
     Tworzy wykres przedstawiający średnią wartość dla różnych jumperów i długości fal, 
     z uporządkowaną osią X tak, aby na początku (x=1) był numer jumpera z najniższą mean value.
@@ -361,7 +378,7 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     # Ładowanie danych
     # To nigdy nie miało sensu i działało (błędnie) przez błąd w definicji danych
     # zmienić na DataCore.IL_jumpers_wavelengths
-    wavelength_IL_combinations = DC.jumper_combinations_all_wavelengths(n_choices)
+    wavelength_IL_combinations = DC.IL_jumpers_wavelengths()
     wavelengths = list(wavelength_IL_combinations.keys())
     
     # Przygotowanie danych jumperów
@@ -388,8 +405,8 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     fig, ax = plt.subplots(figsize=(10, 6))
     
     # Przygotowanie kolorów dla różnych długości fal
-    colors = plt.cm.viridis(np.linspace(0, 1, len(wavelength_IL_combinations)))
-    
+    colors = plt.cm.Set2(range(0, len(wavelength_IL_combinations)))
+
     all_mean_values = []
 
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
@@ -432,10 +449,11 @@ def jumper_mean_plot_sorted(DC, n_choices=1):
     df = pd.DataFrame(all_mean_values,columns=[f"jumper {i}" for i in sorted_jumper_numbers])
     return (fig, df)
 
-def jumper_std_plot_sorted(DC, n_choices=1):
+def jumper_std_plot_sorted(DC):
     """
     Tworzy wykres przedstawiający odchylenie standardowe dla różnych jumperów i długości fal, 
-    z uporządkowaną osią X tak, aby na początku (x=1) był numer jumpera z najniższym std value.
+    z uporządkowaną osią X tak, aby na początku (x=1) był numer jumpera z najniższym mean value.
+    (Mozna zmienic na sortowanie pod odchyleniu standardowym)
     
     DC: DataCore
         Obiekt klasy DataCore zawierający dane.
@@ -444,7 +462,7 @@ def jumper_std_plot_sorted(DC, n_choices=1):
         Liczba jumperów, które chcemy uwzględnić w wykresie (np. wybierając 1, będziemy patrzeć na pojedyncze jumpers).
     """
     # Ładowanie danych
-    wavelength_IL_combinations = DC.jumper_combinations_all_wavelengths(n_choices)
+    wavelength_IL_combinations = DC.IL_jumpers_wavelengths()
     wavelengths = list(wavelength_IL_combinations.keys())
     
     # Przygotowanie danych jumperów
@@ -460,23 +478,31 @@ def jumper_std_plot_sorted(DC, n_choices=1):
         for jumper_data in IL_data_to_sort
     ]
     
-    # Obliczamy odchylenia standardowe dla jumperów przy wybranej długości fali
-    std_values_to_sort = np.array([
-        np.std(data) if len(data) > 0 else np.nan 
-        for data in IL_data_to_sort_clean
-    ])
+    # # Obliczamy odchylenia standardowe dla jumperów przy wybranej długości fali
+    # std_values_to_sort = np.array([
+    #     np.std(data) if len(data) > 0 else np.nan 
+    #     for data in IL_data_to_sort_clean
+    # ])
     
-    # Sortowanie jumperów na podstawie odchyleń standardowych dla wybranej długości fali
-    sorted_indices = np.argsort(std_values_to_sort)
+    # # Sortowanie jumperów na podstawie odchyleń standardowych dla wybranej długości fali
+    # sorted_indices = np.argsort(std_values_to_sort)
+    # sorted_jumper_numbers = jumper_numbers[sorted_indices]
+    
+    # Obliczamy średnie wartości dla jumperów przy wybranej długości fali
+    mean_values_to_sort = np.array([np.mean(data) if len(data) > 0 else np.nan for data in IL_data_to_sort_clean])
+    
+    # Sortowanie jumperów na podstawie średnich wartości dla wybranej długości fali
+    sorted_indices = np.argsort(mean_values_to_sort)
     sorted_jumper_numbers = jumper_numbers[sorted_indices]
     
     # Tworzymy wykres
     fig, ax = plt.subplots(figsize=(10, 6))
     
     # Przygotowanie kolorów dla różnych długości fal
-    colors = plt.cm.viridis(np.linspace(0, 1, len(wavelength_IL_combinations)))
+    colors = plt.cm.Set2(range(0, len(wavelength_IL_combinations)))
     
     all_std_values = []
+    all_mean_values = []
 
     # Przechodzimy po długościach fal i rysujemy wykres dla posortowanych jumperów
     for idx, (wavelength, IL_data) in enumerate(wavelength_IL_combinations.items()):
@@ -491,6 +517,16 @@ def jumper_std_plot_sorted(DC, n_choices=1):
             np.std(data) if len(data) > 0 else np.nan 
             for data in IL_data_clean
         ]
+        
+        mean_values = [
+            np.mean(np.array(jumper_data, dtype=float)[~np.isnan(np.array(jumper_data, dtype=float))]) 
+            if len(jumper_data) > 0 else np.nan 
+            for jumper_data in IL_data
+        ]
+        
+        # Sortowanie średnich wartości zgodnie z kolejnością jumperów
+        sorted_mean_values = np.array(mean_values)[sorted_indices]
+        all_mean_values.append(list(sorted_mean_values))
         
         # Sortowanie odchyleń standardowych zgodnie z kolejnością jumperów
         sorted_std_values = np.array(std_values)[sorted_indices]
@@ -534,183 +570,203 @@ def connector_std_plot_sorted(DC):
     DC: DataCore
         Obiekt klasy DataCore zawierający dane.
     """
+    wavelength_ex = DC.wavelengths()[0]
+
+    test_sheet = DC.IL_wavelength(wavelength_ex)
+
+    num_connectors = DC.n_connectors(test_sheet)    # number of connectors (prawidłowy)
+    
     # Ładowanie danych dla connectorów
     wavelengths = DC.wavelengths()
-    IL_data = DC.IL_reference_connectors()
-    connector_numbers = np.array(range(1, len(IL_data[0]) + 1))  # Numery connectorów
+    IL_data = DC.IL_dut_connectors()
+
+    # Lista do przechowywania wyników podzielonych na długości fal
+    grouped_by_wavelength = [[] for _ in wavelengths]
     
-    # Wybór pierwszej długości fali do sortowania
-    wavelength_to_sort = wavelengths[0]
-    IL_data_to_sort = IL_data[0]  # Dane dla pierwszej długości fali
-    
-    # Usuwanie NaN przed obliczaniem odchylenia standardowego
-    IL_data_to_sort_clean = [
-        np.array(connector_data, dtype=float) for connector_data in IL_data_to_sort
-    ]
-    IL_data_to_sort_clean = [
-        connector_data[~np.isnan(connector_data)] for connector_data in IL_data_to_sort_clean
-    ]
-    
-    # Obliczanie wartości odchyleń standardowych dla connectorów przy wybranej długości fali
-    std_values = np.array([np.std(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_to_sort_clean])
-    
-    # Usuwanie NaN z std_values przed sortowaniem
-    clean_indices = ~np.isnan(std_values)
-    std_values_clean = std_values[clean_indices]
-    connector_numbers_clean = connector_numbers[clean_indices]
-    
-    # Sortowanie connectorów na podstawie wartości odchyleń standardowych
-    sorted_indices = np.argsort(std_values_clean)
-    sorted_connector_numbers = connector_numbers_clean[sorted_indices]
-    
+    for connector in range(0, num_connectors):
+        start = 0
+        end = num_connectors
+        
+        # Usuwanie NaN przed obliczaniem średniej
+        connector_data_cleaned = [
+            np.array(connector_data, dtype=float)[~np.isnan(np.array(connector_data, dtype=float))] 
+            for connector_data in IL_data[connector]
+        ]
+        
+        # Obliczanie wartości średnich dla connectora przy wybranej długości fali
+        for wavelength in range(0, len(wavelengths)):
+            connector_data_wavelength = connector_data_cleaned[start:end]
+            std_for_wavelength = np.array([np.std(connector_data) if len(connector_data) > 0 else np.nan for connector_data in connector_data_wavelength])
+            std_value = np.nanstd(std_for_wavelength)
+            
+            # Dodanie wyniku do odpowiedniej grupy długości fal
+            grouped_by_wavelength[wavelength].append(std_value)
+            
+            start += num_connectors
+            end += num_connectors
+
+    # Konwersja wyników do macierzy NumPy
+    std_values_array = np.array(grouped_by_wavelength).T
+
+    # Sortowanie connectorów na podstawie wartości średnich dla wybranej długości fali
+    wavelength_to_sort = 0
+    sorted_indices = np.argsort(std_values_array[:, wavelength_to_sort])
+    sorted_connector_numbers = np.arange(1, num_connectors + 1)[sorted_indices]
+
     # Tworzenie wykresu
     fig, ax = plt.subplots(figsize=(10, 6))
-    
+
     # Przygotowanie kolorów dla różnych długości fal
-    colors = plt.cm.viridis(np.linspace(0, 1, len(wavelengths)))
-    
+    colors = plt.cm.Set2(range(0, len(wavelengths)))
+
     all_std_values = []
 
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
-        # Usuwanie NaN przed obliczaniem odchylenia standardowego dla danej długości fali
-        IL_data_clean = [
-            np.array(connector_data, dtype=float) for connector_data in IL_data[idx]
-        ]
-        IL_data_clean = [
-            connector_data[~np.isnan(connector_data)] for connector_data in IL_data_clean
-        ]
-        
-        # Obliczanie odchyleń standardowych dla wszystkich connectorów
-        std_values = np.array([np.std(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_clean])
-        
-        # Usuwanie NaN z obliczonych wartości odchyleń standardowych
-        std_values_clean = std_values[~np.isnan(std_values)]
-        
-        # Sortowanie odchyleń standardowych zgodnie z posortowanymi connectorami
-        sorted_std_values = std_values_clean[sorted_indices]
-        
-        all_std_values.append(list(sorted_std_values))
-        
+        # Pobranie średnich wartości dla danej długości fali
+        std_values = std_values_array[:, idx]
+
+        # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
+        sorted_std_values = std_values[sorted_indices]
+        all_std_values.append(sorted_std_values)
+
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
             sorted_std_values,
-            label=f'Standard Deviation (λ={wavelength} nm)',
+            label=f'Std (\u03bb={wavelength} nm)',
             color=colors[idx],
             linestyle='--',
             marker='x'
         )
-    
-    # Ustawienie etykiet na osi X zgodnie z numerami connectorów
+
+    # Ustawienia osi X
     ax.set_xticks(range(1, len(sorted_connector_numbers) + 1))
     ax.set_xticklabels(sorted_connector_numbers)  # Etykiety to posortowane numery connectorów
-    
+
     # Ustawienia wykresu
-    ax.set_xlabel(f'Connector Number (Ordered by Standard Deviation for λ={wavelength_to_sort} nm)')
-    ax.set_ylabel('Standard Deviation of IL')
-    ax.set_title('Sorted Standard Deviation of IL Values for Connectors Across Different Wavelengths')
-    
-    # Dodanie legendy
+    ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
+    ax.set_ylabel('Std of IL')
+    ax.set_title('Sorted Std of IL Values for Connectors Across Different Wavelengths')
+
     ax.legend(loc='best')
     plt.grid(True)
-    plt.tight_layout()  # Poprawienie układu wykresu
+    plt.tight_layout()
     plt.show()
+
+    # Przygotowanie DataFrame do zwrócenia
+    df = pd.DataFrame(
+        np.array(all_std_values).T,  # Transponujemy, aby connectorzy byli w wierszach
+        columns=[f"Wavelength {wavelength} nm" for wavelength in wavelengths]
+    )
+    df.index = [f"Connector {connector}" for connector in sorted_connector_numbers]
+
+    df = pd.DataFrame(all_std_values, columns=[f"connector {i}" for i in sorted_connector_numbers])
     
-    df = pd.DataFrame(all_std_values, columns=[f"jumper {i}" for i in sorted_connector_numbers])
-
     return (fig, df)
-
 
 def connector_mean_plot_sorted(DC):
     """
     Tworzy wykres przedstawiający średnią IL dla różnych connectorów i długości fal,
     z uporządkowaną osią X tak, aby na początku (x=1) był numer connectora z najniższą średnią wartością IL.
-    
+
     DC: DataCore
         Obiekt klasy DataCore zawierający dane.
     """
+    
+    wavelength_ex = DC.wavelengths()[0]
+
+    test_sheet = DC.IL_wavelength(wavelength_ex)
+
+    #-----------------------------------------------------------------
+
+    num_connectors = DC.n_connectors(test_sheet)    # number of connectors (prawidłowy)
+    
     # Ładowanie danych dla connectorów
     wavelengths = DC.wavelengths()
-    IL_data = DC.IL_reference_connectors()
-    connector_numbers = np.array(range(1, len(IL_data[0]) + 1))  # Numery connectorów
+    IL_data = DC.IL_dut_connectors()
+
+    # Lista do przechowywania wyników podzielonych na długości fal
+    grouped_by_wavelength = [[] for _ in wavelengths]
     
-    # Wybór pierwszej długości fali do sortowania
-    wavelength_to_sort = wavelengths[0]
-    IL_data_to_sort = IL_data[0]  # Zakładamy, że dane są posortowane według długości fal w IL_data
-    
-    # Usuwanie NaN przed obliczaniem średniej
-    IL_data_to_sort_clean = [
-        np.array(connector_data, dtype=float) for connector_data in IL_data_to_sort
-    ]
-    IL_data_to_sort_clean = [
-        connector_data[~np.isnan(connector_data)] for connector_data in IL_data_to_sort_clean
-    ]
-    
-    # Obliczanie wartości średnich dla connectorów przy wybranej długości fali
-    mean_values = np.array([np.mean(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_to_sort_clean])
-    
-    # Usuwanie NaN z mean_values przed sortowaniem
-    clean_indices = ~np.isnan(mean_values)
-    mean_values_clean = mean_values[clean_indices]
-    connector_numbers_clean = connector_numbers[clean_indices]
-    
-    # Sortowanie connectorów na podstawie wartości średnich
-    sorted_indices = np.argsort(mean_values_clean)
-    sorted_connector_numbers = connector_numbers_clean[sorted_indices]
-    
+    for connector in range(0, num_connectors):
+        start = 0
+        end = num_connectors
+        
+        # Usuwanie NaN przed obliczaniem średniej
+        connector_data_cleaned = [
+            np.array(connector_data, dtype=float)[~np.isnan(np.array(connector_data, dtype=float))] 
+            for connector_data in IL_data[connector]
+        ]
+        
+        # Obliczanie wartości średnich dla connectora przy wybranej długości fali
+        for wavelength in range(0, len(wavelengths)):
+            connector_data_wavelength = connector_data_cleaned[start:end]
+            mean_for_wavelength = np.array([np.mean(connector_data) if len(connector_data) > 0 else np.nan for connector_data in connector_data_wavelength])
+            mean_value = np.nanmean(mean_for_wavelength)
+            
+            # Dodanie wyniku do odpowiedniej grupy długości fal
+            grouped_by_wavelength[wavelength].append(mean_value)
+            
+            start += num_connectors
+            end += num_connectors
+
+    # Konwersja wyników do macierzy NumPy
+    mean_values_array = np.array(grouped_by_wavelength).T
+
+    # Sortowanie connectorów na podstawie wartości średnich dla wybranej długości fali
+    wavelength_to_sort = 0
+    sorted_indices = np.argsort(mean_values_array[:, wavelength_to_sort])
+    sorted_connector_numbers = np.arange(1, num_connectors + 1)[sorted_indices]
+
     # Tworzenie wykresu
     fig, ax = plt.subplots(figsize=(10, 6))
-    
+
     # Przygotowanie kolorów dla różnych długości fal
-    colors = plt.cm.viridis(np.linspace(0, 1, len(wavelengths)))
-    
+    colors = plt.cm.Set2(range(0, len(wavelengths)))
+
     all_mean_values = []
 
     # Rysowanie wykresu dla każdej długości fali
     for idx, wavelength in enumerate(wavelengths):
-        # Usuwanie NaN przed obliczaniem średniej dla danej długości fali
-        IL_data_clean = [
-            np.array(connector_data, dtype=float) for connector_data in IL_data[idx]
-        ]
-        IL_data_clean = [
-            connector_data[~np.isnan(connector_data)] for connector_data in IL_data_clean
-        ]
-        
-        # Obliczanie średnich dla wszystkich connectorów
-        mean_values = np.array([np.mean(connector_data) if len(connector_data) > 0 else np.nan for connector_data in IL_data_clean])
-        
-        # Usuwanie NaN z obliczonych wartości średnich
-        mean_values_clean = mean_values[~np.isnan(mean_values)]
-        
-        # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
-        sorted_mean_values = mean_values_clean[sorted_indices]
+        # Pobranie średnich wartości dla danej długości fali
+        mean_values = mean_values_array[:, idx]
 
-        all_mean_values.append(list(sorted_mean_values))
-        
-        
+        # Sortowanie średnich wartości zgodnie z posortowanymi connectorami
+        sorted_mean_values = mean_values[sorted_indices]
+        all_mean_values.append(sorted_mean_values)
+
         # Rysowanie wykresu dla posortowanych danych
         ax.plot(
             range(1, len(sorted_connector_numbers) + 1),  # Indeksy na osi X
             sorted_mean_values,
-            label=f'Mean (λ={wavelength} nm)',
+            label=f'Mean (\u03bb={wavelength} nm)',
             color=colors[idx],
             linestyle='--',
             marker='x'
         )
-    
+
+    # Ustawienia osi X
     ax.set_xticks(range(1, len(sorted_connector_numbers) + 1))
     ax.set_xticklabels(sorted_connector_numbers)  # Etykiety to posortowane numery connectorów
-    
+
     # Ustawienia wykresu
-    ax.set_xlabel(f'Connector Number (Ordered by Mean for λ={wavelength_to_sort} nm)')
+    ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
     ax.set_ylabel('Mean of IL')
     ax.set_title('Sorted Mean of IL Values for Connectors Across Different Wavelengths')
-    
+
     ax.legend(loc='best')
     plt.grid(True)
     plt.tight_layout()
     plt.show()
-    
+
+    # Przygotowanie DataFrame do zwrócenia
+    df = pd.DataFrame(
+        np.array(all_mean_values).T,  # Transponujemy, aby connectorzy byli w wierszach
+        columns=[f"Wavelength {wavelength} nm" for wavelength in wavelengths]
+    )
+    df.index = [f"Connector {connector}" for connector in sorted_connector_numbers]
+
     df = pd.DataFrame(all_mean_values, columns=[f"connector {i}" for i in sorted_connector_numbers])
+    
     return (fig, df)

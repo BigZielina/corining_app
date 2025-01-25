@@ -12,8 +12,6 @@ from reportlab.lib.pagesizes import letter
 import os
 
 
-st.set_page_config(layout="wide")
-
 @st.cache_data
 def convert_df_to_csv(df):
 

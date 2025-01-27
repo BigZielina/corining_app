@@ -60,25 +60,38 @@ def generate_plots(uploaded_path,selected_connector_number):
 def generate_tab_titles():
     
     titles = []
+    titles_categories = []
 
+    weibulls = []
     for wavelength in DC.wavelengths():
-        titles.append(f"Weibull distribution {wavelength}")
+        weibulls.append(f"Weibull distribution {wavelength}")
+
+    titles.append(weibulls)
+    titles_categories.append("Weibull")
 
     if 1550 in DC.wavelengths() and 1310 in DC.wavelengths():
-        titles += ["1550v1310",]
+        titles += [["1550v1310"],]
+        titles_categories.append("1550v1310")
 
-    titles += [ "Jumper Mean", "Jumper Std"]
+
+    titles_categories.append("Jumper")
+    titles += [[ "Jumper Mean", "Jumper Std"]]
+
+
+    RMs =[]
+    titles_categories.append("Random Mating")
+    for wavelength in DC.wavelengths():
+        RMs.append(f"RM286_IL_Mean {wavelength}")
 
     for wavelength in DC.wavelengths():
-        titles.append(f"RM286_IL_Mean {wavelength}")
+        RMs.append(f"RM286_IL_97th {wavelength}")
 
-    for wavelength in DC.wavelengths():
-        titles.append(f"RM286_IL_97th {wavelength}")
+    titles += [RMs]
+    titles_categories.append("Connectors")
+    titles += [["Mean Connectors",
+        "Connectors Std"]]
 
-    titles += ["Mean Connectors",
-        "Connectors Std"]
-
-    return titles
+    return titles,titles_categories
 
 def plot_weibull_distribution(il_values, wavelength):
     """Plot histogram and Weibull fit for given IL values"""

@@ -10,7 +10,7 @@ from raport import create_pdf
 from reportlab.platypus import SimpleDocTemplate
 from reportlab.lib.pagesizes import letter
 import os
-
+import itertools
 
 @st.cache_data
 def convert_df_to_csv(df):
@@ -161,7 +161,7 @@ if uploaded_file is not None:
     st.write(dfs1[0])
     max_selected_connectors = n_jumpers
     plots, dfs = generate_plots(uploaded_file,selected_connector_number)
-    tab_titles = generate_tab_titles()
+    tab_titles,tab_categories = generate_tab_titles()
 
     dfs = list(dfs)
     dfs.insert(0, dfs1[0])
@@ -175,41 +175,49 @@ if uploaded_file is not None:
         file_name="all_data.zip",
         mime="application/zip"
     )
-    
-    tabs = st.tabs(tab_titles)
 
-    for i, tab in enumerate(tabs):
-        with tab:
-            st.subheader(f"{tab_titles[i]}")
+    tab_cats = st.tabs(tab_categories)
+    i_global = 0
+    for j,tab_cat in enumerate(tab_cats):
 
-            st.pyplot(plots[i])
+        with tab_cat:
+            tabs = st.tabs(tab_titles[j])
+            for i, tab in enumerate(tabs):
+                with tab:
 
-            buf = BytesIO()
-            plots[i].savefig(buf, format="png")
-            buf.seek(0)
-            st.download_button(
-                label=f"Download Plot {i+1}",
-                data=buf,
-                file_name=f"plot_{i+1}.png",
-                mime="image/png"
-            )
-            buf.close()
+                    st.subheader(f"{tab_titles[j][i]}")
 
-            if i+1 < len(dfs)+1:  # Check if DataFrame exists
-                st.write(dfs[i+1])
+                    st.pyplot(plots[i_global])
 
-                csv_data = convert_df_to_csv(dfs[i+1])
-                st.download_button(
-                    label=f"Download Table {i+1} as CSV",
-                    data=csv_data,
-                    file_name=f"table_{i+1}.csv",
-                    mime="text/csv"
-            )
+                    buf = BytesIO()
+                    plots[i_global].savefig(buf, format="png")
+                    buf.seek(0)
+                    st.download_button(
+                        label=f"Download Plot {i+1}",
+                        data=buf,
+                        file_name=f"plot_{i+1}.png",
+                        mime="image/png",
+                        key=f"plot{j}{i_global}{i}"
+                    )
+                    buf.close()
 
+                    if i_global+1 < len(dfs)+1:  # Check if DataFrame exists
+                        st.write(dfs[i_global+1])
 
+                        csv_data = convert_df_to_csv(dfs[i_global+1])
+                        st.download_button(
+                            label=f"Download Table {i+1} as CSV",
+                            data=csv_data,
+                            file_name=f"table_{i+1}.csv",
+                            mime="text/csv",
+                            key=f"{j}{i_global}{i}"
+                    )
+                    i_global += 1
+    print(tab_titles)
+    print(list(itertools.chain(*tab_titles)))
     st.download_button(
         label="Generate and Download PDF Report",
-        data=save_pdf(create_pdf(tab_titles, plots, dfs)),
+        data=save_pdf(create_pdf(list(itertools.chain(*tab_titles)), plots, dfs)),
         file_name="RM_report.pdf",
         mime="application/pdf",
     )

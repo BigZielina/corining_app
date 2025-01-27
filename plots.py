@@ -170,18 +170,21 @@ def plot1550vs1310(DC):
         start = 0
         end = num_connectors
         
-        # Usuwanie NaN przed obliczaniem średniej
+        # Usuwanie NaN
         connector_data_cleaned = [
             np.array(connector_data, dtype=float)[~np.isnan(np.array(connector_data, dtype=float))] 
             for connector_data in IL_data[connector]
         ]
         
-        # Obliczanie wartości średnich dla connectora przy wybranej długości fali
+        # Obliczanie przy wybranej długości fali
         for wavelength in range(0, len(wavelengths)):
             connector_data_wavelength = connector_data_cleaned[start:end]
             
-            # Dodanie wyniku do odpowiedniej grupy długości fal
-            #grouped_by_wavelength[wavelength].append(connector_data_wavelength)
+            # Filter out empty arrays
+            connector_data_wavelength = [arr for arr in connector_data_wavelength if arr.size > 0]
+
+            # Concatenate the remaining arrays into a single 1D array
+            connector_data_wavelength = np.concatenate(connector_data_wavelength)
             
             if wavelength == idx_1310:
                 x = np.append(x, connector_data_wavelength)
@@ -191,17 +194,9 @@ def plot1550vs1310(DC):
             start += num_connectors
             end += num_connectors
     
-    # Przekształcenie danych
-    x_cleaned = []
-    y_cleaned = []
-
-    # Usunięcie pustych elementów i ich indeksów
-    for x, y in zip(x, y):
-        if len(x) > 0 and len(y) > 0:  # Sprawdzenie, czy x i y nie są puste
-            x_cleaned.append(np.mean(x))  # Użycie średniej dla reprezentacji x
-            y_cleaned.append(np.mean(y))  # Użycie średniej dla reprezentacji y
-
-    # Konwersja do tablic numpy
+    x_cleaned = x
+    y_cleaned = y
+    
     x_clean = np.array(x_cleaned)
     y_clean = np.array(y_cleaned)
 

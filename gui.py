@@ -70,6 +70,29 @@ with st.expander("Generate Excel Template"):
     n_connectors = st.number_input("Number of Connectors", min_value=2, max_value=100, value=10, step=2)
     n_wavelengths = st.number_input("Number of Wavelengths", min_value=1, max_value=10, value=1, step=1)
     n_fibers = st.number_input("Number of Fibers", min_value=1, max_value=50, value=1, step=1)
+
+    st.write("Wavelength Selection")
+    st.markdown("Select predefined wavelengths or add your own. For custom wavelengths, separate values with semicolons (e.g., 1309.45;1789;1).")
+
+    predefined_wavelengths = ["1310", "1490", "1550", "1625"]
+    selected_wavelengths = [
+        wavelength for wavelength in predefined_wavelengths
+        if st.checkbox(wavelength, value=True)
+    ]
+
+    user_defined_wavelengths = st.text_input(
+        "Enter additional wavelengths (separate with semicolons):",
+        value=""
+    )
+    if user_defined_wavelengths.strip():
+        additional_wavelengths = user_defined_wavelengths.split(";")
+        additional_wavelengths = [w.strip() for w in additional_wavelengths if w.strip()]
+    else:
+        additional_wavelengths = []
+
+    wavelengths = selected_wavelengths + additional_wavelengths #list of wavelenghs for template generating
+
+
     file_name = st.text_input("File Name", value="template.xlsx")
 
     buffer = BytesIO()
@@ -84,7 +107,7 @@ with st.expander("Generate Excel Template"):
     # [] 1550mn
     # no i potem pole na potencjalne dodatkowe wartośći
     #
-    warnings = wavelengths = [1310, 1550]
+    # warnings = wavelengths = [1310, 1550]
     data_core_instance.create_excel_template(
         n_connectors=n_connectors,
         path=buffer,

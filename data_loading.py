@@ -78,11 +78,11 @@ class DataCore():
                     expected_nan_cell_value = IL_data[row_index,column_index]
 
                     if not np.isnan(float(expected_nan_cell_value)):
-
-                        IL_data[row_index,column_index] = 'NaN'
+                        pd_column = excel_file_df.columns[column_index+2]
+                        excel_file_df.at[row_index+2,pd_column] = "NaN"
                         column_letter = xlsxwriter.utility.xl_col_to_name(column_index+2)
                         wrong_cell_values.append(expected_nan_cell_value)
-                        wrong_cell_values.append(f"{column_letter}{column_index+2}")
+                        wrong_cells.append(f"{column_letter}{row_index+2}")
 
             if self.language == 'english' and len(wrong_cell_values) > 0:
                 warnings.append(f"Cell value(s) {wrong_cell_values} at position(s) {wrong_cells} in sheet {sheet_name} is(are) a numeric value.\
@@ -94,14 +94,13 @@ class DataCore():
                     sytuacji gdzie connector jest testowany z connectorem na tym samym kablu.")
 
 
-            expected_data_shape = (n_connectors*n_connectors,n_fibers)
-
-            if IL_data.shape != expected_data_shape:
+            expected_data_shape = (n_connectors*n_connectors+2,n_fibers+2)
+            if excel_file_df.shape != expected_data_shape:
 
                 if self.language == "english":
-                    warnings.append(f"Loaded data from sheet {sheet_name} has shape {IL_data.shape} while the fiber and connector numbering suggest a shape {(n_connectors*n_connectors,n_fibers)}.")
+                    warnings.append(f"Loaded data from sheet {sheet_name} has shape {excel_file_df.shape} while the fiber and connector numbering suggests a shape {(n_connectors*n_connectors,n_fibers)}.")
                 elif self.language == "polish":
-                    warnings.append(f"Załadowane dane z arkusza {sheet_name} mają wymiary {IL_data.shape} podczas gdy numeracja connectorów i włókien sugeruje wymiary {(n_connectors*n_connectors,n_fibers)}.")
+                    warnings.append(f"Załadowane dane z arkusza {sheet_name} mają wymiary {excel_file_df.shape} podczas gdy numeracja connectorów i włókien sugeruje wymiary {(n_connectors*n_connectors,n_fibers)}.")
 
             self.excel_data[wavelength] = excel_file_df
 

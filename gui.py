@@ -142,6 +142,10 @@ if uploaded_file is not None:
     #TODO teraz load_excel zwraca liste ostrzeżeń jako stringów które trzeba jakoś ludzią pokazać
     warnings = data_core_instance.load_excel(uploaded_file)
 
+
+    if len(warnings) != 0:
+        st.warning("\n".join(warnings))
+
     dfs1,n_jumpers = generate_df(uploaded_file)
 
     with st.expander("RM number of jumper choices"):
@@ -171,7 +175,7 @@ if uploaded_file is not None:
         file_name="all_data.zip",
         mime="application/zip"
     )
-
+    
     tabs = st.tabs(tab_titles)
 
     for i, tab in enumerate(tabs):

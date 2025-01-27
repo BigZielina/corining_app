@@ -116,6 +116,11 @@ with st.expander("Generate Excel Template"):
     )
 
     buffer.seek(0)
+    if wavelengths:
+        st.success(f"The following wavelengths are included in the template: {', '.join(wavelengths)}")
+    else:
+        st.warning("No wavelengths selected.")
+
     st.download_button(
         label="Generate and Download Excel Template",
         data=buffer,

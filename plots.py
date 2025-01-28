@@ -5,9 +5,10 @@ from data_loading import DataCore
 import pandas as pd 
 DC = DataCore()
 
-def generate_plots(uploaded_path,selected_connector_number):
+def generate_plots(uploaded_path,selected_connector_number,language = "english"):
     # do tego tupla z wykresu 
     DC.load_excel(uploaded_path)
+    DC.language = language
     figs = []
     dfs = []
     
@@ -57,39 +58,72 @@ def generate_plots(uploaded_path,selected_connector_number):
 
     return [tuple(figs),tuple(dfs)]
 
-def generate_tab_titles():
-    
-    titles = []
-    titles_categories = []
+def generate_tab_titles(lanuguage = "english"):
+    if lanuguage == "english":
+        titles = []
+        titles_categories = []
 
-    weibulls = []
-    for wavelength in DC.wavelengths():
-        weibulls.append(f"Weibull distribution {wavelength}")
+        weibulls = []
+        for wavelength in DC.wavelengths():
+            weibulls.append(f"Weibull distribution {wavelength}")
 
-    titles.append(weibulls)
-    titles_categories.append("Weibull")
+        titles.append(weibulls)
+        titles_categories.append("Weibull")
 
-    if 1550 in DC.wavelengths() and 1310 in DC.wavelengths():
-        titles += [["1550v1310"],]
-        titles_categories.append("1550v1310")
-
-
-    titles_categories.append("Jumper")
-    titles += [[ "Jumper Mean", "Jumper Std"]]
+        if 1550 in DC.wavelengths() and 1310 in DC.wavelengths():
+            titles += [["1550v1310"],]
+            titles_categories.append("1550v1310")
 
 
-    RMs =[]
-    titles_categories.append("Random Mating")
-    for wavelength in DC.wavelengths():
-        RMs.append(f"RM286_IL_Mean {wavelength}")
+        titles_categories.append("Jumper")
+        titles += [[ "Jumper Mean", "Jumper Std"]]
 
-    for wavelength in DC.wavelengths():
-        RMs.append(f"RM286_IL_97th {wavelength}")
 
-    titles += [RMs]
-    titles_categories.append("Connectors")
-    titles += [["Mean Connectors",
-        "Connectors Std"]]
+        RMs =[]
+        titles_categories.append("Random Mating")
+        for wavelength in DC.wavelengths():
+            RMs.append(f"RM286_IL_Mean {wavelength}")
+
+        for wavelength in DC.wavelengths():
+            RMs.append(f"RM286_IL_97th {wavelength}")
+
+        titles += [RMs]
+        titles_categories.append("Connectors")
+        titles += [["Mean Connectors",
+            "Connectors Std"]]
+        
+    if lanuguage == "polish":
+        titles = []
+        titles_categories = []
+
+        weibulls = []
+        for wavelength in DC.wavelengths():
+            weibulls.append(f"Dystrybucja Weibull'a {wavelength}")
+
+        titles.append(weibulls)
+        titles_categories.append("Weibull")
+
+        if 1550 in DC.wavelengths() and 1310 in DC.wavelengths():
+            titles += [["1550v1310"],]
+            titles_categories.append("1550v1310")
+
+
+        titles_categories.append("Kable")
+        titles += [[ "Kable średnie", "kable odchylenie"]]
+
+
+        RMs =[]
+        titles_categories.append("Random Mating")
+        for wavelength in DC.wavelengths():
+            RMs.append(f"RM286_IL_Mean {wavelength}")
+
+        for wavelength in DC.wavelengths():
+            RMs.append(f"RM286_IL_97th {wavelength}")
+
+        titles += [RMs]
+        titles_categories.append("Złącza")
+        titles += [["Złącza średnie",
+            "Złącza odchylenie"]]
 
     return titles,titles_categories
 
@@ -120,13 +154,17 @@ def plot_weibull_distribution(il_values, wavelength):
 
     # Add mean value to the legend
     plt.axvline(mean_il, color='b', linestyle='dashed', linewidth=2, label=f'Mean = {mean_il:.2f}')
-    
-    plt.title(f'Weibull Distribution Fit for Wavelength {wavelength} nm')
-    plt.xlabel('IL Values')
-    plt.ylabel('Density')
+    if DC.language == "english":
+        plt.title(f'Weibull Distribution Fit for Wavelength {wavelength} nm')
+        plt.xlabel('IL values')
+        plt.ylabel('Density')
+    if DC.language == "polish":
+        plt.title(f'Dopasowanie rozkładu Weibulla do długości fali {wavelength} nm')
+        plt.xlabel('Wartości IL')
+        plt.ylabel('Gęstość')
     plt.legend()
     plt.show()
-    df = pd.DataFrame([[shape, scale, mean_il]],columns=["weibull shape","weibull scale","mean IL"])
+    df = pd.DataFrame([[shape, scale, mean_il]],columns=["kształt weibull'a","skala weibull'a","średnie IL"])
     return (fig, df)
 
 def generate_weibull_distribution_for_wavelengths(DC):
@@ -299,9 +337,15 @@ def rm286_ilmean_plot(data_core: DataCore, selected_connector_number):
 
         # Add legend, title, and labels
         plt.legend()
-        plt.title(f'Histogram of IL Mean Values (Wavelength = {wavelength} nm)')
-        plt.xlabel('Value')
-        plt.ylabel('Frequency')
+        if DC.language == "english":
+            plt.title(f'Histogram of IL Mean Values (Wavelength = {wavelength} nm)')
+            plt.xlabel('Value')
+            plt.ylabel('Frequency')
+        if DC.language == "polish":
+            plt.title(f'Histogram średnich wartości IL (długość fali = {wavelength} nm)')
+            plt.xlabel('Wartość')
+            plt.ylabel('Częstotliwość')
+
         plt.grid()
 
         # Show plot
@@ -367,9 +411,14 @@ def rm286_il97th_plot_filtered(data_core: DataCore, selected_connector_number):
 
         # Add legend, title, and labels
         plt.legend()
-        plt.title(f'Filtered Histogram of IL 97th Percentile Values (Wavelength = {wavelength} nm)')
-        plt.xlabel('Value')
-        plt.ylabel('Frequency')
+        if DC.language == "english":
+            plt.title(f'Filtered Histogram of IL 97th Percentile Values (Wavelength = {wavelength} nm)')
+            plt.xlabel('Value')
+            plt.ylabel('Frequency')
+        if DC.language == "polish":
+            plt.title(f'Przefiltrowany histogram wartości IL 97 percentyla (długość fali = {wavelength} nm)')
+            plt.xlabel('Wartość')
+            plt.ylabel('Częstotliwość')
         plt.grid()
 
         # Show plot
@@ -454,9 +503,15 @@ def jumper_mean_plot_sorted(DC):
     ax.set_xticklabels(sorted_jumper_numbers)  # Używamy posortowanych numerów jumperów jako etykiet
     
     # Ustawienia wykresu
-    ax.set_xlabel('Jumper Number (Ordered by Mean for λ={:.0f} nm)'.format(wavelength_to_sort))
-    ax.set_ylabel('Mean IL Value')
-    ax.set_title('Sorted Mean IL Values for Jumpers Across Different Wavelengths')
+    if DC.language == "english":
+        ax.set_xlabel('Jumper Number (Ordered by Mean for λ={:.0f} nm)'.format(wavelength_to_sort))
+        ax.set_ylabel('Mean IL Value')
+        ax.set_title('Sorted Mean IL Values for Jumpers Across Different Wavelengths')
+    
+    if DC.language == "polish":
+        ax.set_xlabel('Numer Kabla (Posortowany po średniej dla λ={:.0f} nm)'.format(wavelength_to_sort))
+        ax.set_ylabel('Średnia wartość IL')
+        ax.set_title('Posortowane średnie wartości IL dla kabli o różnych długościach fali')
     
     # Dodanie legendy
     ax.legend(loc='best')
@@ -566,9 +621,14 @@ def jumper_std_plot_sorted(DC):
     ax.set_xticklabels(sorted_jumper_numbers)  # Używamy posortowanych numerów jumperów jako etykiet
     
     # Ustawienia wykresu
-    ax.set_xlabel('Jumper Number (Ordered by Standard Deviation for λ={:.0f} nm)'.format(wavelength_to_sort))
-    ax.set_ylabel('Standard Deviation')
-    ax.set_title('Sorted Standard Deviation of IL Values for Jumpers Across Different Wavelengths')
+    if DC.language == "english":
+        ax.set_xlabel('Jumper Number (Ordered by Standard Deviation for λ={:.0f} nm)'.format(wavelength_to_sort))
+        ax.set_ylabel('Standard Deviation')
+        ax.set_title('Sorted Standard Deviation of IL Values for Jumpers Across Different Wavelengths')
+    if DC.language == "polish":
+        ax.set_xlabel('Numer Kabla (Posortowany odchyleniem standardowym dla  λ={:.0f} nm)'.format(wavelength_to_sort))
+        ax.set_ylabel('Odchylenie Standardowe')
+        ax.set_title('Posortowane odchylenie standardowe wartości IL dla zworek o różnych długościach fali')
     
     # Dodanie legendy
     ax.legend(loc='best')
@@ -662,9 +722,14 @@ def connector_std_plot_sorted(DC):
     ax.set_xticklabels(sorted_connector_numbers)  # Etykiety to posortowane numery connectorów
 
     # Ustawienia wykresu
-    ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
-    ax.set_ylabel('Std of IL')
-    ax.set_title('Sorted Std of IL Values for Connectors Across Different Wavelengths')
+    if DC.language == "english":
+        ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
+        ax.set_ylabel('Std of IL')
+        ax.set_title('Sorted Std of IL Values for Connectors Across Different Wavelengths')
+    if DC.language == "polish":
+        ax.set_xlabel(f'Numer złącza (Posortowany po średniej dla \u03bb={wavelengths[0]} nm)')
+        ax.set_ylabel('Standardowe odchylenie')
+        ax.set_title('Posortowane odchylenie standardowe wartości IL dla złączy o różnych długościach fali')
 
     ax.legend(loc='best')
     plt.grid(True)
@@ -768,10 +833,15 @@ def connector_mean_plot_sorted(DC):
     ax.set_xticklabels(sorted_connector_numbers)  # Etykiety to posortowane numery connectorów
 
     # Ustawienia wykresu
-    ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
-    ax.set_ylabel('Mean of IL')
-    ax.set_title('Sorted Mean of IL Values for Connectors Across Different Wavelengths')
 
+    if DC.language == "english":
+        ax.set_xlabel(f'Connector Number (Ordered by Mean for \u03bb={wavelengths[0]} nm)')
+        ax.set_ylabel('Mean of IL')
+        ax.set_title('Sorted Mean of IL Values for Connectors Across Different Wavelengths')
+    if DC.language == "polish":
+        ax.set_xlabel(f'Numer złącza (Posortowany po średniej dla \u03bb={wavelengths[0]} nm)')
+        ax.set_ylabel('Średnia IL')
+        ax.set_title('Posortowane średnie wartości IL dla złączy o różnych długościach fali')
     ax.legend(loc='best')
     plt.grid(True)
     plt.tight_layout()

@@ -62,17 +62,40 @@ def save_pdf(story):
 
 st.title("Data Viewer")
 
-with st.expander("Generate Excel Template"):
-    st.write("Set the parameters below to create your Excel template.")
+
+app_language = st.sidebar.selectbox("Language/Język",["english","polish"])
+
+
+expander_str = "Generate Excel Template"
+if app_language == "polish":
+    expander_str = "Wygeneruj szablon excela"
+with st.expander(expander_str):
+    
+    if app_language == "english":
+        st.write("Set the parameters below to create your Excel template.")
+    if app_language == "polish":
+        st.write("Ustaw poniższe parametry, aby utworzyć szablon w programie Excel.")
+
 
 
     #connectors should actually be an even number
-    n_connectors = st.number_input("Number of Connectors", min_value=2, max_value=100, value=10, step=2)
-    n_wavelengths = st.number_input("Number of Wavelengths", min_value=1, max_value=10, value=1, step=1)
-    n_fibers = st.number_input("Number of Fibers", min_value=1, max_value=50, value=1, step=1)
 
-    st.write("Wavelength Selection")
-    st.markdown("Select predefined wavelengths or add your own. For custom wavelengths, separate values with semicolons (e.g., 1309.45;1789;1).")
+    if app_language == "english":
+        n_connectors = st.number_input("Number of Connectors", min_value=2, max_value=100, value=10, step=2)
+        # n_wavelengths = st.number_input("Number of Wavelengths", min_value=1, max_value=10, value=1, step=1)
+        n_fibers = st.number_input("Number of Fibers", min_value=1, max_value=50, value=1, step=1)
+ 
+    if app_language == "polish":
+        n_connectors = st.number_input("Liczba złączek", min_value=2, max_value=100, value=10, step=2)
+        # n_wavelengths = st.number_input("Liczba długości fali", min_value=1, max_value=10, value=1, step=1)
+        n_fibers = st.number_input("Liczba włókien", min_value=1, max_value=50, value=1, step=1)
+    
+    if app_language == "english":
+        st.write("Wavelength Selection")
+        st.markdown("Select predefined wavelengths or add your own. For custom wavelengths, separate values with semicolons (e.g., 1309.45;1789;1).")
+    if app_language == "polish":
+        st.write("Wybór długości fali")
+        st.markdown("Wybierz wstępnie zdefiniowane długości fal lub dodaj własne. W przypadku niestandardowych długości fal rozdziel wartości średnikami (np. 1309.45;1789;1).")
 
     predefined_wavelengths = ["1310", "1490", "1550", "1625"]
     selected_wavelengths = [
@@ -80,8 +103,13 @@ with st.expander("Generate Excel Template"):
         if st.checkbox(wavelength, value=True)
     ]
 
+
+    text_input_string = "Enter additional wavelengths (separate with semicolons):"
+    if app_language == "polish":
+        text_input_string = "Wprowadź dodatkowe długości fal (oddzielone średnikami):"
+
     user_defined_wavelengths = st.text_input(
-        "Enter additional wavelengths (separate with semicolons):",
+        text_input_string,
         value=""
     )
     if user_defined_wavelengths.strip():
@@ -93,21 +121,16 @@ with st.expander("Generate Excel Template"):
     wavelengths = selected_wavelengths + additional_wavelengths #list of wavelenghs for template generating
 
 
-    file_name = st.text_input("File Name", value="template.xlsx")
+    if app_language == "english":
+        file_name = st.text_input("File Name", value="template.xlsx")
+    if app_language == "polish":
+        file_name = st.text_input("Nazwa pliku", value="szablon.xlsx")
 
     buffer = BytesIO()
 
-    #TODO : język jako parametr w GUI żeby kontrolować język instrukcji, błędów i najlepiej całego UI
-    app_language = "english"
     data_core_instance = DataCore(language = app_language)
 
-    # TODO : trzeba zmienić żeby gui dawało liste długości fal które mają być w pliku
-    # i tak żeby wszystkie te bazowe ([1310, 1550,...]) były do zaznaczenia jakoś tak
-    # [] 1310nm
-    # [] 1550mn
-    # no i potem pole na potencjalne dodatkowe wartośći
-    #
-    # warnings = wavelengths = [1310, 1550]
+
     data_core_instance.create_excel_template(
         n_connectors=n_connectors,
         path=buffer,
@@ -116,17 +139,32 @@ with st.expander("Generate Excel Template"):
     )
 
     buffer.seek(0)
-    if wavelengths:
-        st.success(f"The following wavelengths are included in the template: {', '.join(wavelengths)}")
-    else:
-        st.warning("No wavelengths selected.")
 
-    st.download_button(
-        label="Generate and Download Excel Template",
-        data=buffer,
-        file_name=file_name,
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    if app_language == "english":
+        if wavelengths:
+            st.success(f"The following wavelengths are included in the template: {', '.join(wavelengths)}")
+        else:
+            st.warning("No wavelengths selected.")
+
+        st.download_button(
+            label="Generate and Download Excel Template",
+            data=buffer,
+            file_name=file_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+
+    if app_language == "polish":
+        if wavelengths:
+            st.success(f"W szablonie uwzględniono następujące długości fal: {', '.join(wavelengths)}")
+        else:
+            st.warning("Nie wybrano żadnych długości fal.")
+    
+        st.download_button(
+            label="Wygeneruj i pobierz szablon Excela",
+            data=buffer,
+            file_name=file_name,
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
 # template_csv = "template.xlsx"
 # st.download_button(
@@ -134,8 +172,11 @@ with st.expander("Generate Excel Template"):
 #     data=open(template_csv, 'rb').read(),
 #     file_name="template.xlsx"
 # )
+if app_language == "english":
+    uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
+if app_language == "polish":
+    uploaded_file = st.file_uploader("Prześlij swój plik Excel", type=['xlsx'])
 
-uploaded_file = st.file_uploader("Upload your Excel file", type=['xlsx'])
 
 if uploaded_file is not None:
 
@@ -147,21 +188,34 @@ if uploaded_file is not None:
         st.warning("\n".join(warnings))
 
     dfs1,n_jumpers = generate_df(uploaded_file)
+    if app_language == "english":
+        with st.expander("RM number of jumper choices"):
+            st.write("Provide the desired number of jumpers to be chosen in each random mating")
+            selected_connector_number = st.number_input(
+                "Number of choices",
+                min_value=1,
+                max_value=n_jumpers,
+                value=n_jumpers-1 if n_jumpers > 1 else 1,
+                step=1
+            )
+        st.subheader("Overview Table")
+        
+    if app_language == "polish":
+        with st.expander("liczba wyborów kabli do RM"):
+            st.write("Podaj żądaną liczbę kabli, które mają zostać wybrane w każdym losowym połączeniu")
+            selected_connector_number = st.number_input(
+                "liczba wyborów",
+                min_value=1,
+                max_value=n_jumpers,
+                value=n_jumpers-1 if n_jumpers > 1 else 1,
+                step=1
+            )
+        st.subheader("Ogólne dane")
 
-    with st.expander("RM number of jumper choices"):
-        st.write("Provide the desired number of jumpers to be chosen in each random mating")
-        selected_connector_number = st.number_input(
-            "Number of choices",
-            min_value=1,
-            max_value=n_jumpers,
-            value=n_jumpers-1 if n_jumpers > 1 else 1,
-            step=1
-        )
-    st.subheader("Overview Table")
     st.write(dfs1[0])
     max_selected_connectors = n_jumpers
-    plots, dfs = generate_plots(uploaded_file,selected_connector_number)
-    tab_titles,tab_categories = generate_tab_titles()
+    plots, dfs = generate_plots(uploaded_file,selected_connector_number,language=app_language)
+    tab_titles,tab_categories = generate_tab_titles(app_language)
 
     dfs = list(dfs)
     dfs.insert(0, dfs1[0])
@@ -169,12 +223,21 @@ if uploaded_file is not None:
 
     all_plots = save_plots_to_bytes(plots)
     all_data_zip = create_zip_file(dfs, all_plots)
-    st.download_button(
-        label="Download All Data (Tables and Plots)",
-        data=all_data_zip,
-        file_name="all_data.zip",
-        mime="application/zip"
-    )
+    if app_language == 'english':
+        st.download_button(
+            label="Download All Data (Tables and Plots)",
+            data=all_data_zip,
+            file_name="all_data.zip",
+            mime="application/zip"
+        )
+
+    if app_language == 'polish':
+        st.download_button(
+            label="Pobierz wszystkie dane (tabele i wykresy)",
+            data=all_data_zip,
+            file_name="all_data.zip",
+            mime="application/zip"
+        )
 
     tab_cats = st.tabs(tab_categories)
     i_global = 0
@@ -192,32 +255,62 @@ if uploaded_file is not None:
                     buf = BytesIO()
                     plots[i_global].savefig(buf, format="png")
                     buf.seek(0)
-                    st.download_button(
-                        label=f"Download Plot {i+1}",
-                        data=buf,
-                        file_name=f"plot_{i+1}.png",
-                        mime="image/png",
-                        key=f"plot{j}{i_global}{i}"
-                    )
+                    if app_language == "english":
+                        st.download_button(
+                            label=f"Download Plot {i+1}",
+                            data=buf,
+                            file_name=f"plot_{i+1}.png",
+                            mime="image/png",
+                            key=f"plot{j}{i_global}{i}"
+                        )
+
+                    if app_language == "polish":
+                        st.download_button(
+                            label=f"Pobierz wykres {i+1}",
+                            data=buf,
+                            file_name=f"plot_{i+1}.png",
+                            mime="image/png",
+                            key=f"plot{j}{i_global}{i}"
+                        )
                     buf.close()
 
                     if i_global+1 < len(dfs)+1:  # Check if DataFrame exists
                         st.write(dfs[i_global+1])
 
                         csv_data = convert_df_to_csv(dfs[i_global+1])
-                        st.download_button(
-                            label=f"Download Table {i+1} as CSV",
-                            data=csv_data,
-                            file_name=f"table_{i+1}.csv",
-                            mime="text/csv",
-                            key=f"{j}{i_global}{i}"
-                    )
+
+                        if app_language == "english":
+                            st.download_button(
+                                label=f"Download Table {i+1} as CSV",
+                                data=csv_data,
+                                file_name=f"table_{i+1}.csv",
+                                mime="text/csv",
+                                key=f"{j}{i_global}{i}"
+                            )
+                        if app_language == "polish":
+                            st.download_button(
+                                label=f"Pobierz tabele {i+1} jako CSV",
+                                data=csv_data,
+                                file_name=f"table_{i+1}.csv",
+                                mime="text/csv",
+                                key=f"{j}{i_global}{i}"
+                            )
                     i_global += 1
-    print(tab_titles)
-    print(list(itertools.chain(*tab_titles)))
-    st.download_button(
-        label="Generate and Download PDF Report",
-        data=save_pdf(create_pdf(list(itertools.chain(*tab_titles)), plots, dfs)),
-        file_name="RM_report.pdf",
-        mime="application/pdf",
-    )
+
+    if app_language == "english":
+
+        st.download_button(
+            label="Generate and Download PDF Report",
+            data=save_pdf(create_pdf(list(itertools.chain(*tab_titles)), plots, dfs)),
+            file_name="RM_report.pdf",
+            mime="application/pdf",
+        )
+
+    if app_language == "polish":
+
+        st.download_button(
+            label="Wygeneruj i pobierz raport PDF",
+            data=save_pdf(create_pdf(list(itertools.chain(*tab_titles)), plots, dfs)),
+            file_name="RM_report.pdf",
+            mime="application/pdf",
+        )
